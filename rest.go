@@ -61,20 +61,6 @@ func (this *Gorest) Serve() {
 
 					context["api_token_id"] = r.Header.Get("api_token_id")
 					context["api_token_key"] = r.Header.Get("api_token_key")
-					if len(this.SessionKey) > 0 {
-						cookieUser, err := r.Cookie("user")
-						if cookieUser != nil && err == nil {
-							mapCookies, err := ReadCookie(this.SessionKey, cookieUser.Value)
-							if err == nil {
-								userId := mapCookies["user_id"]
-								tokenKey := mapCookies["token_key"]
-								if userId != nil && tokenKey != nil {
-									context["api_token_id"] = userId
-									context["api_token_key"] = tokenKey
-								}
-							}
-						}
-					}
 
 					dbo = dataOperator.(DataOperator)
 					urlPrefix = kUrlPrefix
@@ -85,22 +71,6 @@ func (this *Gorest) Serve() {
 					continue
 				}
 				if urlPath == kUrlPrefix {
-
-					if len(this.SessionKey) > 0 {
-						cookieUser, err := r.Cookie("user")
-						if cookieUser != nil && err == nil {
-							mapCookies, err := ReadCookie(this.SessionKey, cookieUser.Value)
-							if err == nil {
-								userId := mapCookies["user_id"]
-								tokenKey := mapCookies["token_key"]
-								if userId != nil && tokenKey != nil {
-									r.Header.Set("api_token_id", userId.(string))
-									r.Header.Set("api_token_key", tokenKey.(string))
-								}
-							}
-						}
-					}
-
 					dataOperator(w, r)
 					return
 				}
