@@ -16,16 +16,16 @@ import (
 
 type MySqlDataOperator struct {
 	*DefaultDataOperator
-	Ds         string
-	DbType     string
-	TokenTable string
-	Db         *sql.DB
+	Ds        string
+	DbType    string
+	UserTable string
+	Db        *sql.DB
 }
 
 func (this *MySqlDataOperator) Load(tableId string, id string, field []string, context map[string]interface{}) (map[string]string, error) {
 	ret := make(map[string]string, 0)
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
-	context["token_table"] = this.TokenTable
+	context["user_table"] = this.UserTable
 	db, err := this.GetConn()
 
 	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
@@ -81,7 +81,7 @@ func (this *MySqlDataOperator) ListMap(tableId string, field []string, filter []
 	start int64, limit int64, includeTotal bool, context map[string]interface{}) ([]map[string]string, int64, error) {
 	ret := make([]map[string]string, 0)
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
-	context["token_table"] = this.TokenTable
+	context["user_table"] = this.UserTable
 	db, err := this.GetConn()
 
 	sort = parseSort(sort)
@@ -135,7 +135,7 @@ func (this *MySqlDataOperator) ListMap(tableId string, field []string, filter []
 func (this *MySqlDataOperator) ListArray(tableId string, field []string, filter []string, sort string, group string,
 	start int64, limit int64, includeTotal bool, context map[string]interface{}) ([]string, [][]string, int64, error) {
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
-	context["token_table"] = this.TokenTable
+	context["user_table"] = this.UserTable
 	db, err := this.GetConn()
 
 	sort = parseSort(sort)
@@ -188,7 +188,7 @@ func (this *MySqlDataOperator) ListArray(tableId string, field []string, filter 
 }
 func (this *MySqlDataOperator) Create(tableId string, data map[string]interface{}, context map[string]interface{}) (interface{}, map[string]interface{}, error) {
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
-	context["token_table"] = this.TokenTable
+	context["user_table"] = this.UserTable
 	info := make(map[string]interface{})
 	db, err := this.GetConn()
 
@@ -279,7 +279,7 @@ func (this *MySqlDataOperator) Create(tableId string, data map[string]interface{
 }
 func (this *MySqlDataOperator) Update(tableId string, data map[string]interface{}, context map[string]interface{}) (int64, map[string]interface{}, error) {
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
-	context["token_table"] = this.TokenTable
+	context["user_table"] = this.UserTable
 	info := make(map[string]interface{})
 	db, err := this.GetConn()
 
@@ -365,7 +365,7 @@ func (this *MySqlDataOperator) Update(tableId string, data map[string]interface{
 }
 func (this *MySqlDataOperator) Duplicate(tableId string, id string, context map[string]interface{}) (interface{}, map[string]interface{}, error) {
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
-	context["token_table"] = this.TokenTable
+	context["user_table"] = this.UserTable
 	info := make(map[string]interface{})
 	db, err := this.GetConn()
 
@@ -491,7 +491,7 @@ func (this *MySqlDataOperator) Duplicate(tableId string, id string, context map[
 }
 func (this *MySqlDataOperator) Delete(tableId string, id string, context map[string]interface{}) (int64, map[string]interface{}, error) {
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
-	context["token_table"] = this.TokenTable
+	context["user_table"] = this.UserTable
 	info := make(map[string]interface{})
 	db, err := this.GetConn()
 
