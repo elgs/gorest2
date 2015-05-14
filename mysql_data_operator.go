@@ -1,4 +1,4 @@
-package gorest
+package gorest2
 
 import (
 	"bytes"

@@ -1,5 +1,5 @@
 // daemon
-package gorest
+package gorest2
 
 import (
 	"fmt"

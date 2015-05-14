@@ -1,10 +1,9 @@
-package gorest
+package gorest2
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"runtime"
 	"strconv"
 	"strings"
 )
@@ -42,7 +41,6 @@ func ReadCookie(key string, s string) (map[string]interface{}, error) {
 }
 
 func (this *Gorest) Serve() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
 	handler := func(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))

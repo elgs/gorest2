@@ -1,5 +1,5 @@
 // randgen
-package gorest
+package gorest2
 
 import (
 	"math/rand"

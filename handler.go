@@ -1,5 +1,5 @@
 // handler
-package gorest
+package gorest2
 
 import (
 	"net/http"
