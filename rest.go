@@ -96,7 +96,7 @@ func (this *Gorest) Serve() {
 				t := r.FormValue("total")
 				a := r.FormValue("array")
 				filter := r.Form["filter"]
-				field := r.Form["field"]
+				fields := strings.ToUpper(r.FormValue("fields"))
 				sort := r.FormValue("sort")
 				group := r.FormValue("group")
 				s := r.FormValue("start")
@@ -126,13 +126,13 @@ func (this *Gorest) Serve() {
 				if array {
 					var headers []string
 					var dataArray [][]string
-					headers, dataArray, total, err = dbo.ListArray(tableId, field, filter, sort, group, start, limit, includeTotal, context)
+					headers, dataArray, total, err = dbo.ListArray(tableId, fields, filter, sort, group, start, limit, includeTotal, context)
 					data = map[string]interface{}{
 						"headers": headers,
 						"data":    dataArray,
 					}
 				} else {
-					data, total, err = dbo.ListMap(tableId, field, filter, sort, group, start, limit, includeTotal, context)
+					data, total, err = dbo.ListMap(tableId, fields, filter, sort, group, start, limit, includeTotal, context)
 				}
 				m := map[string]interface{}{
 					"data":  data,
@@ -151,9 +151,9 @@ func (this *Gorest) Serve() {
 				c := r.FormValue("case")
 				context["case"] = c
 
-				field := r.Form["field"]
+				fields := strings.ToUpper(r.FormValue("fields"))
 
-				data, err := dbo.Load(tableId, dataId, field, context)
+				data, err := dbo.Load(tableId, dataId, fields, context)
 
 				m := map[string]interface{}{
 					"data": data,

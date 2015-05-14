@@ -22,21 +22,21 @@ type MySqlDataOperator struct {
 	Db        *sql.DB
 }
 
-func (this *MySqlDataOperator) Load(tableId string, id string, field []string, context map[string]interface{}) (map[string]string, error) {
+func (this *MySqlDataOperator) Load(tableId string, id string, fields string, context map[string]interface{}) (map[string]string, error) {
 	ret := make(map[string]string, 0)
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
 	context["user_table"] = this.UserTable
 	db, err := this.GetConn()
 
 	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
-		ctn, err := globalDataInterceptor.BeforeLoad(tableId, db, field, context, id)
+		ctn, err := globalDataInterceptor.BeforeLoad(tableId, db, fields, context, id)
 		if !ctn {
 			return ret, err
 		}
 	}
 	dataInterceptor := GetDataInterceptor(tableId)
 	if dataInterceptor != nil {
-		ctn, err := dataInterceptor.BeforeLoad(tableId, db, field, context, id)
+		ctn, err := dataInterceptor.BeforeLoad(tableId, db, fields, context, id)
 		if !ctn {
 			return ret, err
 		}
@@ -49,9 +49,8 @@ func (this *MySqlDataOperator) Load(tableId string, id string, field []string, c
 	}
 	c := context["case"].(string)
 
-	fields := parseFields(field)
 	m, err := gosqljson.QueryDbToMap(db, c,
-		fmt.Sprint("SELECT", fields, "FROM ", tableId, " WHERE ID=? ", extraFilter), id)
+		fmt.Sprint("SELECT ", fields, " FROM ", tableId, " WHERE ID=? ", extraFilter), id)
 	if err != nil {
 		fmt.Println(err)
 		return ret, err
@@ -64,10 +63,10 @@ func (this *MySqlDataOperator) Load(tableId string, id string, field []string, c
 	}
 
 	if dataInterceptor != nil {
-		dataInterceptor.AfterLoad(tableId, db, field, context, m[0])
+		dataInterceptor.AfterLoad(tableId, db, fields, context, m[0])
 	}
 	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
-		globalDataInterceptor.AfterLoad(tableId, db, field, context, m[0])
+		globalDataInterceptor.AfterLoad(tableId, db, fields, context, m[0])
 	}
 
 	if m != nil && len(m) == 1 {
@@ -77,7 +76,7 @@ func (this *MySqlDataOperator) Load(tableId string, id string, field []string, c
 	}
 
 }
-func (this *MySqlDataOperator) ListMap(tableId string, field []string, filter []string, sort string, group string,
+func (this *MySqlDataOperator) ListMap(tableId string, fields string, filter []string, sort string, group string,
 	start int64, limit int64, includeTotal bool, context map[string]interface{}) ([]map[string]string, int64, error) {
 	ret := make([]map[string]string, 0)
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
@@ -87,23 +86,22 @@ func (this *MySqlDataOperator) ListMap(tableId string, field []string, filter []
 	sort = parseSort(sort)
 	where := parseFilters(filter)
 	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
-		ctn, err := globalDataInterceptor.BeforeListMap(tableId, db, field, context, &where, &sort, &group, start, limit, includeTotal)
+		ctn, err := globalDataInterceptor.BeforeListMap(tableId, db, fields, context, &where, &sort, &group, start, limit, includeTotal)
 		if !ctn {
 			return ret, -1, err
 		}
 	}
 	dataInterceptor := GetDataInterceptor(tableId)
 	if dataInterceptor != nil {
-		ctn, err := dataInterceptor.BeforeListMap(tableId, db, field, context, &where, &sort, &group, start, limit, includeTotal)
+		ctn, err := dataInterceptor.BeforeListMap(tableId, db, fields, context, &where, &sort, &group, start, limit, includeTotal)
 		if !ctn {
 			return ret, -1, err
 		}
 	}
 
 	c := context["case"].(string)
-	fields := parseFields(field)
 	m, err := gosqljson.QueryDbToMap(db, c,
-		fmt.Sprint("SELECT", fields, "FROM ", tableId, where, parseGroup(group), sort, " LIMIT ?,?"), start, limit)
+		fmt.Sprint("SELECT ", fields, " FROM ", tableId, where, parseGroup(group), sort, " LIMIT ?,?"), start, limit)
 	if err != nil {
 		fmt.Println(err)
 		return ret, -1, err
@@ -111,7 +109,7 @@ func (this *MySqlDataOperator) ListMap(tableId string, field []string, filter []
 	cnt := -1
 	if includeTotal {
 		c, err := gosqljson.QueryDbToMap(db, "upper",
-			fmt.Sprint("SELECT COUNT(*) AS CNT FROM (", "SELECT", fields, "FROM ", tableId, where, parseGroup(group), ")a"))
+			fmt.Sprint("SELECT COUNT(*) AS CNT FROM (", "SELECT ", fields, " FROM ", tableId, where, parseGroup(group), ")a"))
 		if err != nil {
 			fmt.Println(err)
 			return ret, -1, err
@@ -124,15 +122,15 @@ func (this *MySqlDataOperator) ListMap(tableId string, field []string, filter []
 	}
 
 	if dataInterceptor != nil {
-		dataInterceptor.AfterListMap(tableId, db, field, context, m, int64(cnt))
+		dataInterceptor.AfterListMap(tableId, db, fields, context, m, int64(cnt))
 	}
 	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
-		globalDataInterceptor.AfterListMap(tableId, db, field, context, m, int64(cnt))
+		globalDataInterceptor.AfterListMap(tableId, db, fields, context, m, int64(cnt))
 	}
 
 	return m, int64(cnt), err
 }
-func (this *MySqlDataOperator) ListArray(tableId string, field []string, filter []string, sort string, group string,
+func (this *MySqlDataOperator) ListArray(tableId string, fields string, filter []string, sort string, group string,
 	start int64, limit int64, includeTotal bool, context map[string]interface{}) ([]string, [][]string, int64, error) {
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
 	context["user_table"] = this.UserTable
@@ -141,23 +139,22 @@ func (this *MySqlDataOperator) ListArray(tableId string, field []string, filter 
 	sort = parseSort(sort)
 	where := parseFilters(filter)
 	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
-		ctn, err := globalDataInterceptor.BeforeListArray(tableId, db, field, context, &where, &sort, &group, start, limit, includeTotal)
+		ctn, err := globalDataInterceptor.BeforeListArray(tableId, db, fields, context, &where, &sort, &group, start, limit, includeTotal)
 		if !ctn {
 			return nil, nil, -1, err
 		}
 	}
 	dataInterceptor := GetDataInterceptor(tableId)
 	if dataInterceptor != nil {
-		ctn, err := dataInterceptor.BeforeListArray(tableId, db, field, context, &where, &sort, &group, start, limit, includeTotal)
+		ctn, err := dataInterceptor.BeforeListArray(tableId, db, fields, context, &where, &sort, &group, start, limit, includeTotal)
 		if !ctn {
 			return nil, nil, -1, err
 		}
 	}
 
 	c := context["case"].(string)
-	fields := parseFields(field)
 	h, a, err := gosqljson.QueryDbToArray(db, c,
-		fmt.Sprint("SELECT", fields, "FROM ", tableId, where, parseGroup(group), sort, " LIMIT ?,?"), start, limit)
+		fmt.Sprint("SELECT ", fields, " FROM ", tableId, where, parseGroup(group), sort, " LIMIT ?,?"), start, limit)
 	if err != nil {
 		fmt.Println(err)
 		return nil, nil, -1, err
@@ -165,7 +162,7 @@ func (this *MySqlDataOperator) ListArray(tableId string, field []string, filter 
 	cnt := -1
 	if includeTotal {
 		c, err := gosqljson.QueryDbToMap(db, "upper",
-			fmt.Sprint("SELECT COUNT(*) AS CNT FROM (", "SELECT", fields, "FROM ", tableId, where, parseGroup(group), ")a"))
+			fmt.Sprint("SELECT COUNT(*) AS CNT FROM (", "SELECT ", fields, " FROM ", tableId, where, parseGroup(group), ")a"))
 		if err != nil {
 			fmt.Println(err)
 			return nil, nil, -1, err
@@ -178,10 +175,10 @@ func (this *MySqlDataOperator) ListArray(tableId string, field []string, filter 
 	}
 
 	if dataInterceptor != nil {
-		dataInterceptor.AfterListArray(tableId, db, field, context, h, a, int64(cnt))
+		dataInterceptor.AfterListArray(tableId, db, fields, context, h, a, int64(cnt))
 	}
 	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
-		globalDataInterceptor.AfterListArray(tableId, db, field, context, h, a, int64(cnt))
+		globalDataInterceptor.AfterListArray(tableId, db, fields, context, h, a, int64(cnt))
 	}
 
 	return h, a, int64(cnt), err
@@ -683,20 +680,6 @@ var parser = &exparser.Parser{
 	Operators: exparser.MysqlOperators,
 }
 
-func parseFields(fields []string) (r string) {
-	if fields == nil || len(fields) == 0 {
-		return " * "
-	}
-	for i, v := range fields {
-		if i == len(fields)-1 {
-			r += fmt.Sprint(v)
-		} else {
-			r += fmt.Sprint(v, ",")
-		}
-	}
-	r = fmt.Sprint(" ", r, " ")
-	return
-}
 func parseGroup(group string) (r string) {
 	if strings.TrimSpace(group) == "" {
 		return ""
