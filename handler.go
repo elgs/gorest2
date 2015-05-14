@@ -14,9 +14,3 @@ func RegisterHandler(id string, handler func(dbo DataOperator) func(w http.Respo
 func GetHandler(id string) func(dbo DataOperator) func(w http.ResponseWriter, r *http.Request) {
 	return handlerRegistry[id]
 }
-
-func RegisterHttpHandlers(dbo DataOperator) {
-	for id, makeHandler := range handlerRegistry {
-		RegisterDataOperator(id, makeHandler(dbo))
-	}
-}

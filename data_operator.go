@@ -4,16 +4,6 @@ import (
 	"database/sql"
 )
 
-var dataOperatorRegistry = make(map[string]interface{})
-
-func RegisterDataOperator(id string, dataOperator interface{}) {
-	dataOperatorRegistry[id] = dataOperator
-}
-
-func GetDataOperator(id string) interface{} {
-	return dataOperatorRegistry[id]
-}
-
 type DataOperator interface {
 	Load(resourceId string, id string, fields string, context map[string]interface{}) (map[string]string, error)
 	ListMap(resourceId string, fields string, filter []string, sort string, group string, start int64, limit int64, includeTotal bool, context map[string]interface{}) ([]map[string]string, int64, error)
