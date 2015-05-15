@@ -3,6 +3,7 @@ package gorest2
 import (
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 type Gorest struct {
@@ -21,22 +22,30 @@ type Gorest struct {
 
 func (this *Gorest) Serve() {
 	handler := func(w http.ResponseWriter, r *http.Request) {
-
 		w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		w.Header().Set("Access-Control-Allow-Methods", r.Header.Get("Access-Control-Request-Method"))
 		w.Header().Set("Access-Control-Allow-Headers", r.Header.Get("Access-Control-Request-Headers"))
-		urlPath := r.URL.Path
-		for kUrlPrefix, dataHandler := range handlerRegistry {
-			if r.Method == "OPTIONS" {
-				return
-			}
-			if urlPath == kUrlPrefix {
-				dbo := GetDbo(urlPath)
-				dataHandler(dbo)(w, r)
-				return
-			}
+
+		if r.Method == "OPTIONS" {
+			return
 		}
+
+		urlPath := r.URL.Path
+		var dataHandler func(dbo DataOperator) func(w http.ResponseWriter, r *http.Request)
+		if strings.HasPrefix(urlPath, "/api/") {
+			dataHandler = GetHandler("/api")
+		} else {
+			dataHandler = GetHandler(urlPath)
+		}
+
+		urlPathData := strings.Split(urlPath[1:], "/")
+		dboId := urlPathData[0]
+		dbo := GetDbo(dboId)
+		if dbo == nil {
+			dbo = GetDbo("api")
+		}
+		dataHandler(dbo)(w, r)
 	}
 	http.HandleFunc("/", handler)
 

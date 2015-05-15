@@ -16,15 +16,13 @@ var RestFunc = func(dbo DataOperator) func(w http.ResponseWriter, r *http.Reques
 		context["api_token_key"] = r.Header.Get("api_token_key")
 
 		urlPath := r.URL.Path
-		//fmt.Println(urlPath)
-		restData := strings.Split(urlPath, "/")
-		tableId := restData[0]
+		urlPathData := strings.Split(urlPath[1:], "/")
+		tableId := urlPathData[1]
 
 		switch r.Method {
 		case "GET":
-			if len(restData) == 1 ||
-				strings.HasPrefix(restData[1], "?") ||
-				len(restData[1]) == 0 {
+			if len(urlPathData) == 2 ||
+				len(urlPathData[2]) == 0 {
 				//List records.
 				t := r.FormValue("total")
 				a := r.FormValue("array")
@@ -80,7 +78,7 @@ var RestFunc = func(dbo DataOperator) func(w http.ResponseWriter, r *http.Reques
 				fmt.Fprint(w, jsonString)
 			} else {
 				// Load record by id.
-				dataId := restData[1]
+				dataId := urlPathData[2]
 				c := r.FormValue("case")
 				context["case"] = c
 
@@ -136,7 +134,7 @@ var RestFunc = func(dbo DataOperator) func(w http.ResponseWriter, r *http.Reques
 			fmt.Fprint(w, jsonString)
 		case "COPY":
 			// Duplicate a new record.
-			dataId := restData[1]
+			dataId := urlPathData[2]
 			data, info, err := dbo.Duplicate(tableId, dataId, context)
 
 			m := map[string]interface{}{
@@ -159,8 +157,8 @@ var RestFunc = func(dbo DataOperator) func(w http.ResponseWriter, r *http.Reques
 			}
 			context["meta"] = meta
 			dataId := ""
-			if len(restData) >= 2 {
-				dataId = restData[1]
+			if len(urlPathData) >= 3 {
+				dataId = urlPathData[1]
 			}
 			decoder := json.NewDecoder(r.Body)
 			m := make(map[string]interface{})
@@ -193,7 +191,7 @@ var RestFunc = func(dbo DataOperator) func(w http.ResponseWriter, r *http.Reques
 			fmt.Fprint(w, jsonString)
 		case "DELETE":
 			// Remove the record.
-			dataId := restData[1]
+			dataId := urlPathData[2]
 
 			load := false
 			l := r.FormValue("load")
