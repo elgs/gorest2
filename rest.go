@@ -32,7 +32,8 @@ func (this *Gorest) Serve() {
 				return
 			}
 			if urlPath == kUrlPrefix {
-				dataHandler(nil)(w, r)
+				dbo := GetDbo(urlPath)
+				dataHandler(dbo)(w, r)
 				return
 			}
 		}

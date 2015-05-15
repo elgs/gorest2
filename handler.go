@@ -14,3 +14,13 @@ func RegisterHandler(id string, handler func(dbo DataOperator) func(w http.Respo
 func GetHandler(id string) func(dbo DataOperator) func(w http.ResponseWriter, r *http.Request) {
 	return handlerRegistry[id]
 }
+
+var dboRegistry = make(map[string]DataOperator)
+
+func RegisterDbo(id string, dbo DataOperator) {
+	dboRegistry[id] = dbo
+}
+
+func GetDbo(id string) DataOperator {
+	return dboRegistry[id]
+}
