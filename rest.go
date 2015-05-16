@@ -2,6 +2,7 @@ package gorest2
 
 import (
 	"fmt"
+	"github.com/elgs/gosqljson"
 	"net/http"
 	"strings"
 )
@@ -43,7 +44,10 @@ func (this *Gorest) Serve() {
 		dboId := urlPathData[0]
 		dbo := GetDbo(dboId)
 		if dbo == nil {
-			dbo = GetDbo("api")
+			dbo = LoadDbo(dboId)
+			if dbo == nil {
+				dbo = GetDbo("api")
+			}
 		}
 		dataHandler(dbo)(w, r)
 	}
@@ -72,4 +76,32 @@ func (this *Gorest) Serve() {
 	} else {
 		fmt.Println("Neither http nor https is listening, therefore I am quiting.")
 	}
+}
+
+func LoadDbo(id string) DataOperator {
+	defaultDbo := GetDbo("api")
+	db, err := defaultDbo.GetConn()
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	query := `SELECT data_store.* FROM project
+		INNER JOIN data_store ON project.DATA_STORE_NAME = data_store.DATA_STORE_KEY
+		WHERE project.PROJECT_KEY=?`
+	data, err := gosqljson.QueryDbToMap(db, query, id)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	if data == nil || len(data) == 0 {
+		return nil
+	}
+	dboData := data[0]
+	dbo := &MySqlDataOperator{
+		Ds: fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", dboData["USERNAME"], dboData["PASSWORD"],
+			dboData["HOST"], dboData["PORT"], dboData["DB"]),
+		DbType: "mysql",
+	}
+	RegisterDbo(id, dbo)
+	return dbo
 }
