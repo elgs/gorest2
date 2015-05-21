@@ -5,13 +5,13 @@ import (
 	"net/http"
 )
 
-var handlerRegistry = make(map[string]func(dbo DataOperator) func(w http.ResponseWriter, r *http.Request))
+var handlerRegistry = make(map[string]func(w http.ResponseWriter, r *http.Request))
 
-func RegisterHandler(id string, handler func(dbo DataOperator) func(w http.ResponseWriter, r *http.Request)) {
+func RegisterHandler(id string, handler func(w http.ResponseWriter, r *http.Request)) {
 	handlerRegistry[id] = handler
 }
 
-func GetHandler(id string) func(dbo DataOperator) func(w http.ResponseWriter, r *http.Request) {
+func GetHandler(id string) func(w http.ResponseWriter, r *http.Request) {
 	return handlerRegistry[id]
 }
 
@@ -22,5 +22,9 @@ func RegisterDbo(id string, dbo DataOperator) {
 }
 
 func GetDbo(id string) DataOperator {
-	return dboRegistry[id]
+	dbo := dboRegistry[id]
+	if dbo == nil {
+		dbo = dboRegistry["default"]
+	}
+	return dbo
 }
