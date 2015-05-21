@@ -22,9 +22,5 @@ func RegisterDbo(id string, dbo DataOperator) {
 }
 
 func GetDbo(id string) DataOperator {
-	dbo := dboRegistry[id]
-	if dbo == nil {
-		dbo = dboRegistry["default"]
-	}
-	return dbo
+	return dboRegistry[id]
 }

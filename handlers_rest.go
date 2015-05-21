@@ -15,6 +15,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	context["api_token_key"] = r.Header.Get("api_token_key")
 
 	dataStoreKey := r.Header.Get("data_store_key")
+	if dataStoreKey == "" {
+		dataStoreKey = "default"
+	}
 	dbo := GetDbo(dataStoreKey)
 
 	urlPath := r.URL.Path
