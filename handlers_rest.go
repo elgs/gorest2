@@ -57,6 +57,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				limit = 25
 				err = nil
 			}
+			if fields == "" {
+				fields = "*"
+			}
 			var data interface{}
 			var total int64 = -1
 			if array {
@@ -88,6 +91,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			context["case"] = c
 
 			fields := strings.ToUpper(r.FormValue("fields"))
+			if fields == "" {
+				fields = "*"
+			}
 
 			data, err := dbo.Load(tableId, dataId, fields, context)
 
