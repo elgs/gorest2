@@ -14,11 +14,11 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	context["api_token_id"] = r.Header.Get("api_token_id")
 	context["api_token_key"] = r.Header.Get("api_token_key")
 
-	dataStoreKey := r.Header.Get("project_id")
-	if dataStoreKey == "" {
-		dataStoreKey = "default"
+	projectId := r.Header.Get("project_id")
+	if projectId == "" {
+		projectId = "default"
 	}
-	dbo := GetDbo(dataStoreKey)
+	dbo := GetDbo(projectId)
 
 	urlPath := r.URL.Path
 	urlPathData := strings.Split(urlPath[1:], "/")
