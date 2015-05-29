@@ -326,6 +326,7 @@ func (this *MySqlDataOperator) Update(tableId string, data map[string]interface{
 		}
 	}
 
+	data["ID"] = id
 	if dataInterceptor != nil {
 		err := dataInterceptor.AfterUpdate(tableId, db, context, info, data)
 		if err != nil {
