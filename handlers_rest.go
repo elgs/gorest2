@@ -131,10 +131,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		for k, v := range m {
 			mUpper[strings.ToUpper(k)] = v
 		}
-		data, info, err := dbo.Create(tableId, mUpper, context)
+		data, err := dbo.Create(tableId, mUpper, context)
 		m = map[string]interface{}{
 			"data": data,
-			"info": info,
 		}
 		if err != nil {
 			m["err"] = err.Error()
@@ -146,11 +145,10 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	case "COPY":
 		// Duplicate a new record.
 		dataId := urlPathData[2]
-		data, info, err := dbo.Duplicate(tableId, dataId, context)
+		data, err := dbo.Duplicate(tableId, dataId, context)
 
 		m := map[string]interface{}{
 			"data": data,
-			"info": info,
 		}
 		if err != nil {
 			m["err"] = err.Error()
@@ -188,10 +186,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		if dataId != "" {
 			mUpper["ID"] = dataId
 		}
-		data, info, err := dbo.Update(tableId, mUpper, context)
+		data, err := dbo.Update(tableId, mUpper, context)
 		m = map[string]interface{}{
 			"data": data,
-			"info": info,
 		}
 		if err != nil {
 			m["err"] = err.Error()
@@ -211,11 +208,10 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		}
 		context["load"] = load
 
-		data, info, err := dbo.Delete(tableId, dataId, context)
+		data, err := dbo.Delete(tableId, dataId, context)
 
 		m := map[string]interface{}{
 			"data": data,
-			"info": info,
 		}
 		if err != nil {
 			m["err"] = err.Error()
