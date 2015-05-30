@@ -5,13 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strconv"
-	"strings"
-	//"time"
-
-	"code.google.com/p/go-uuid/uuid"
 	"github.com/elgs/exparser"
 	"github.com/elgs/gosqljson"
+	"github.com/satori/go.uuid"
+	"strconv"
+	"strings"
 )
 
 type MySqlDataOperator struct {
@@ -205,7 +203,7 @@ func (this *MySqlDataOperator) Create(tableId string, data map[string]interface{
 
 	// Create the record
 	if data["ID"] == nil || data["ID"].(string) == "" {
-		data["ID"] = uuid.New()
+		data["ID"] = uuid.NewV4().String()
 	}
 	dataLen := len(data)
 	values := make([]interface{}, 0, dataLen)
@@ -374,7 +372,7 @@ func (this *MySqlDataOperator) Duplicate(tableId string, id string, context map[
 		}
 	}
 
-	newId := uuid.New()
+	newId := uuid.NewV4().String()
 	// Duplicate the record
 	if tx, ok := context["tx"].(*sql.Tx); ok {
 		data, err := gosqljson.QueryTxToMap(tx, "upper",
