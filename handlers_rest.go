@@ -16,7 +16,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 
 	projectId := r.Header.Get("project_id")
 	if projectId == "" {
-		projectId = "default"
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		fmt.Fprint(w, `{"err":"Invalid project."}`)
+		return
 	}
 	dbo := GetDbo(projectId)
 
