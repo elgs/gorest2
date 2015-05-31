@@ -6,21 +6,9 @@ import (
 	"strings"
 )
 
-type Gorest struct {
-	EnableHttp bool
-	PortHttp   uint16
-	HostHttp   string
+type Gorest map[string]interface{}
 
-	EnableHttps   bool
-	PortHttps     uint16
-	HostHttps     string
-	CertFileHttps string
-	KeyFileHttps  string
-
-	FileBasePath string
-}
-
-func (this *Gorest) Serve() {
+func (this Gorest) Serve() {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
@@ -46,25 +34,34 @@ func (this *Gorest) Serve() {
 	}
 	http.HandleFunc("/", handler)
 
-	if this.EnableHttp {
+	enableHttp := this["enable_http"].(bool)
+	enableHttps := this["enable_https"].(bool)
+
+	if enableHttp {
 		go func() {
-			fmt.Println(fmt.Sprint("Listening on http://", this.HostHttp, ":", this.PortHttp, "/"))
-			err := http.ListenAndServe(fmt.Sprint(this.HostHttp, ":", this.PortHttp), nil)
+			hostHttp := this["host_http"].(string)
+			portHttp := uint16(this["port_http"].(float64))
+			fmt.Println(fmt.Sprint("Listening on http://", hostHttp, ":", portHttp, "/"))
+			err := http.ListenAndServe(fmt.Sprint(hostHttp, ":", portHttp), nil)
 			if err != nil {
 				fmt.Println(err)
 			}
 		}()
 	}
-	if this.EnableHttps {
+	if enableHttps {
 		go func() {
-			fmt.Println(fmt.Sprint("Listening on https://", this.HostHttps, ":", this.PortHttps, "/"))
-			err := http.ListenAndServeTLS(fmt.Sprint(this.HostHttps, ":", this.PortHttps), this.CertFileHttps, this.KeyFileHttps, nil)
+			hostHttps := this["host_https"].(string)
+			portHttps := uint16(this["port_https"].(float64))
+			certFileHttps := this["cert_file_https"].(string)
+			keyFileHttps := this["key_file_https"].(string)
+			fmt.Println(fmt.Sprint("Listening on https://", hostHttps, ":", portHttps, "/"))
+			err := http.ListenAndServeTLS(fmt.Sprint(hostHttps, ":", portHttps), certFileHttps, keyFileHttps, nil)
 			if err != nil {
 				fmt.Println(err)
 			}
 		}()
 	}
-	if this.EnableHttp || this.EnableHttps {
+	if enableHttp || enableHttps {
 		select {}
 	} else {
 		fmt.Println("Neither http nor https is listening, therefore I am quiting.")
