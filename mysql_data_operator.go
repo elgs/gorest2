@@ -601,16 +601,16 @@ func extractDbNameFromDs(dbType string, ds string) string {
 func normalizeTableId(tableId string, dbType string, ds string) string {
 	if strings.Contains(tableId, ".") {
 		a := strings.Split(tableId, ".")
-		return fmt.Sprint(a[0], ".", a[1])
+		return fmt.Sprint("`"+a[0], "`.`", a[1]+"`")
 	}
 	db := extractDbNameFromDs(dbType, ds)
 
 	MysqlSafe(&tableId)
 	if len(strings.TrimSpace(db)) == 0 {
-		return tableId
+		return "`" + tableId + "`"
 	} else {
 		MysqlSafe(&db)
-		return fmt.Sprint(db, ".", tableId)
+		return fmt.Sprint("`"+db+"`", ".", "`"+tableId+"`")
 	}
 }
 

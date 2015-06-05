@@ -12,7 +12,7 @@ func RegisterDataInterceptor(id string, dataInterceptor DataInterceptor) {
 }
 
 func GetDataInterceptor(id string) DataInterceptor {
-	return dataInterceptorRegistry[strings.ToUpper(id)]
+	return dataInterceptorRegistry[strings.ToUpper(strings.Replace(id, "`", "", -1))]
 }
 
 var GlobalDataInterceptorRegistry = make([]DataInterceptor, 0)
