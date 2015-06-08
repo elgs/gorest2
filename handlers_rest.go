@@ -131,7 +131,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		}
 		mUpper := make(map[string]interface{})
 		for k, v := range m {
-			mUpper[strings.ToUpper(k)] = v
+			if !strings.HasPrefix(k, "_") {
+				mUpper[strings.ToUpper(k)] = v
+			}
 		}
 		data, err := dbo.Create(tableId, mUpper, context)
 		m = map[string]interface{}{
@@ -183,7 +185,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		}
 		mUpper := make(map[string]interface{})
 		for k, v := range m {
-			mUpper[strings.ToUpper(k)] = v
+			if !strings.HasPrefix(k, "_") {
+				mUpper[strings.ToUpper(k)] = v
+			}
 		}
 		if dataId != "" {
 			mUpper["ID"] = dataId
