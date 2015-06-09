@@ -20,6 +20,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, `{"err":"Invalid project."}`)
 		return
 	}
+	context["project_id"] = projectId
 	dbo := GetDbo(projectId)
 
 	urlPath := r.URL.Path
