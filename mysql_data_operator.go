@@ -96,7 +96,7 @@ func (this *MySqlDataOperator) ListMap(tableId string, fields string, filter []s
 
 	c := context["case"].(string)
 	m, err := gosqljson.QueryDbToMap(db, c,
-		fmt.Sprint("SELECT ", fields, " FROM ", tableId, where, parseGroup(group), sort, " LIMIT ?,?"), start, limit)
+		fmt.Sprint("SELECT SQL_CALC_FOUND_ROWS ", fields, " FROM ", tableId, where, parseGroup(group), sort, " LIMIT ?,?"), start, limit)
 	if err != nil {
 		fmt.Println(err)
 		return ret, -1, err
@@ -104,12 +104,12 @@ func (this *MySqlDataOperator) ListMap(tableId string, fields string, filter []s
 	cnt := -1
 	if includeTotal {
 		c, err := gosqljson.QueryDbToMap(db, "upper",
-			fmt.Sprint("SELECT COUNT(*) AS CNT FROM (", "SELECT ", fields, " FROM ", tableId, where, parseGroup(group), ")a"))
+			fmt.Sprint("SELECT FOUND_ROWS()"))
 		if err != nil {
 			fmt.Println(err)
 			return ret, -1, err
 		}
-		cnt, err = strconv.Atoi(c[0]["CNT"])
+		cnt, err = strconv.Atoi(c[0]["FOUND_ROWS()"])
 		if err != nil {
 			fmt.Println(err)
 			return ret, -1, err
@@ -148,7 +148,7 @@ func (this *MySqlDataOperator) ListArray(tableId string, fields string, filter [
 
 	c := context["case"].(string)
 	h, a, err := gosqljson.QueryDbToArray(db, c,
-		fmt.Sprint("SELECT ", fields, " FROM ", tableId, where, parseGroup(group), sort, " LIMIT ?,?"), start, limit)
+		fmt.Sprint("SELECT SQL_CALC_FOUND_ROWS ", fields, " FROM ", tableId, where, parseGroup(group), sort, " LIMIT ?,?"), start, limit)
 	if err != nil {
 		fmt.Println(err)
 		return nil, nil, -1, err
@@ -156,12 +156,12 @@ func (this *MySqlDataOperator) ListArray(tableId string, fields string, filter [
 	cnt := -1
 	if includeTotal {
 		c, err := gosqljson.QueryDbToMap(db, "upper",
-			fmt.Sprint("SELECT COUNT(*) AS CNT FROM (", "SELECT ", fields, " FROM ", tableId, where, parseGroup(group), ")a"))
+			fmt.Sprint("SELECT FOUND_ROWS()"))
 		if err != nil {
 			fmt.Println(err)
 			return nil, nil, -1, err
 		}
-		cnt, err = strconv.Atoi(c[0]["CNT"])
+		cnt, err = strconv.Atoi(c[0]["FOUND_ROWS()"])
 		if err != nil {
 			fmt.Println(err)
 			return nil, nil, -1, err
