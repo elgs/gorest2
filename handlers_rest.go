@@ -42,10 +42,10 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			l := r.FormValue("limit")
 			c := r.FormValue("case")
 			context["case"] = c
-			includeTotal := false
+			includeTotal := true
 			array := false
-			if t == "1" {
-				includeTotal = true
+			if t == "0" {
+				includeTotal = false
 			}
 			if a == "1" {
 				array = true
