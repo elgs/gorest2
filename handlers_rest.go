@@ -114,9 +114,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		// Create the record.
 		metaValues := r.URL.Query()["meta"]
-		meta := false
-		if metaValues != nil && metaValues[0] == "1" {
-			meta = true
+		meta := true
+		if metaValues != nil && metaValues[0] == "0" {
+			meta = false
 		}
 		context["meta"] = meta
 
@@ -165,9 +165,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	case "PUT":
 		// Update an existing record.
 		metaValues := r.URL.Query()["meta"]
-		meta := false
-		if metaValues != nil && metaValues[0] == "1" {
-			meta = true
+		meta := true
+		if metaValues != nil && metaValues[0] == "0" {
+			meta = false
 		}
 		context["meta"] = meta
 		dataId := ""
