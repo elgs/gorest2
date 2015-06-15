@@ -11,17 +11,22 @@ import (
 
 var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	context := make(map[string]interface{})
-	context["api_token_id"] = r.Header.Get("api_token_id")
-	context["api_token_key"] = r.Header.Get("api_token_key")
+	//	context["api_token_id"] = r.Header.Get("api_token_id")
+	context["token"] = r.Header.Get("token")
 
-	projectId := r.Header.Get("project_id")
+	projectId := r.Header.Get("app_id")
 	if projectId == "" {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		fmt.Fprint(w, `{"err":"Invalid project."}`)
 		return
 	}
-	context["project_id"] = projectId
+	context["app_id"] = projectId
 	dbo := GetDbo(projectId)
+	if dbo == nil {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		fmt.Fprint(w, `{"err":"Invalid project."}`)
+		return
+	}
 
 	urlPath := r.URL.Path
 	urlPathData := strings.Split(urlPath[1:], "/")
