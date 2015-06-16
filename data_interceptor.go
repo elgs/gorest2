@@ -40,6 +40,8 @@ type DataInterceptor interface {
 	AfterQueryMap(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]string, total int64) error
 	BeforeQueryArray(resourceId string, db *sql.DB, context map[string]interface{}, start int64, limit int64, includeTotal bool) (bool, error)
 	AfterQueryArray(resourceId string, db *sql.DB, context map[string]interface{}, headers []string, data [][]string, total int64) error
+	BeforeExec(resourceId string, db *sql.DB, context map[string]interface{}) (bool, error)
+	AfterExec(resourceId string, db *sql.DB, context map[string]interface{}) error
 }
 
 type DefaultDataInterceptor struct{}
@@ -96,5 +98,11 @@ func (this *DefaultDataInterceptor) BeforeQueryArray(resourceId string, db *sql.
 	return true, nil
 }
 func (this *DefaultDataInterceptor) AfterQueryArray(resourceId string, db *sql.DB, context map[string]interface{}, headers []string, data [][]string, total int64) error {
+	return nil
+}
+func (this *DefaultDataInterceptor) BeforeExec(resourceId string, db *sql.DB, context map[string]interface{}) (bool, error) {
+	return true, nil
+}
+func (this *DefaultDataInterceptor) AfterExec(resourceId string, db *sql.DB, context map[string]interface{}) error {
 	return nil
 }
