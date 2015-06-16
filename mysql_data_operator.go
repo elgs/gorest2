@@ -308,6 +308,22 @@ func (this *MySqlDataOperator) Update(tableId string, data map[string]interface{
 	sets = sets[0 : len(sets)-1]
 	var rowsAffected int64 = 0
 	if tx, ok := context["tx"].(*sql.Tx); ok {
+		load := context["load"].(bool)
+		if load {
+			data, err := gosqljson.QueryTxToMap(tx, "upper", "SELECT * FROM "+tableId+" WHERE ID=?", id)
+			if err != nil {
+				fmt.Println(err)
+				tx.Rollback()
+				return -1, err
+			}
+			if data == nil && len(data) != 1 {
+				tx.Rollback()
+				return -1, errors.New(id.(string) + " not found.")
+			} else {
+				context["old_data"] = data[0]
+			}
+		}
+
 		rowsAffected, err = gosqljson.ExecTx(tx, fmt.Sprint("UPDATE ", tableId, " SET ", sets, " WHERE ID=?"), values...)
 		if err != nil {
 			fmt.Println(err)
@@ -315,6 +331,20 @@ func (this *MySqlDataOperator) Update(tableId string, data map[string]interface{
 			return -1, err
 		}
 	} else {
+		load := context["load"].(bool)
+		if load {
+			data, err := gosqljson.QueryDbToMap(db, "upper", "SELECT * FROM "+tableId+" WHERE ID=?", id)
+			if err != nil {
+				fmt.Println(err)
+				return -1, err
+			}
+			if data == nil && len(data) != 1 {
+				return -1, errors.New(id.(string) + " not found.")
+			} else {
+				context["old_data"] = data[0]
+			}
+		}
+
 		rowsAffected, err = gosqljson.ExecDb(db, fmt.Sprint("UPDATE ", tableId, " SET ", sets, " WHERE ID=?"), values...)
 		if err != nil {
 			fmt.Println(err)
@@ -510,7 +540,7 @@ func (this *MySqlDataOperator) Delete(tableId string, id string, context map[str
 				tx.Rollback()
 				return -1, errors.New(id + " not found.")
 			} else {
-				context["data"] = data[0]
+				context["old_data"] = data[0]
 			}
 		}
 
@@ -532,7 +562,7 @@ func (this *MySqlDataOperator) Delete(tableId string, id string, context map[str
 			if data == nil && len(data) != 1 {
 				return -1, errors.New(id + " not found.")
 			} else {
-				context["data"] = data[0]
+				context["old_data"] = data[0]
 			}
 		}
 
