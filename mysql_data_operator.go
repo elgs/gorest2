@@ -177,6 +177,15 @@ func (this *MySqlDataOperator) ListArray(tableId string, fields string, filter [
 
 	return h, a, int64(cnt), err
 }
+func (this *MySqlDataOperator) QueryMap(resourceId string, start int64, limit int64, includeTotal bool, context map[string]interface{}) ([]map[string]string, int64, error) {
+	return nil, -1, nil
+}
+func (this *MySqlDataOperator) QueryArray(resourceId string, start int64, limit int64, includeTotal bool, context map[string]interface{}) ([]string, [][]string, int64, error) {
+	return nil, nil, -1, nil
+}
+func (this *MySqlDataOperator) Exec(resourceId string, context map[string]interface{}) (int64, error) {
+	return 0, nil
+}
 func (this *MySqlDataOperator) Create(tableId string, data map[string]interface{}, context map[string]interface{}) (interface{}, error) {
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
 	db, err := this.GetConn()
