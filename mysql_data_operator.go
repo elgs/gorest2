@@ -16,7 +16,30 @@ type MySqlDataOperator struct {
 	*DefaultDataOperator
 	Ds     string
 	DbType string
-	Db     *sql.DB
+	db     *sql.DB
+}
+
+func NewDbo(ds, dbType string) DataOperator {
+	return &MySqlDataOperator{
+		DefaultDataOperator: &DefaultDataOperator{
+			DataInterceptorRegistry:       make(map[string]DataInterceptor),
+			GlobalDataInterceptorRegistry: make([]DataInterceptor, 0),
+		},
+		Ds:     ds,
+		DbType: dbType,
+	}
+}
+
+func (this *DefaultDataOperator) RegisterDataInterceptor(id string, dataInterceptor DataInterceptor) {
+	this.DataInterceptorRegistry[strings.ToUpper(id)] = dataInterceptor
+}
+
+func (this *DefaultDataOperator) GetDataInterceptor(id string) DataInterceptor {
+	return this.DataInterceptorRegistry[strings.ToUpper(strings.Replace(id, "`", "", -1))]
+}
+
+func (this *DefaultDataOperator) RegisterGlobalDataInterceptor(globalDataInterceptor DataInterceptor) {
+	this.GlobalDataInterceptorRegistry = append(this.GlobalDataInterceptorRegistry, globalDataInterceptor)
 }
 
 func (this *MySqlDataOperator) Load(tableId string, id string, fields string, context map[string]interface{}) (map[string]string, error) {
@@ -600,7 +623,7 @@ func (this *MySqlDataOperator) Delete(tableId string, id string, context map[str
 }
 
 func (this *MySqlDataOperator) GetConn() (*sql.DB, error) {
-	if this.Db == nil {
+	if this.db == nil {
 		if len(strings.TrimSpace(this.DbType)) == 0 {
 			this.DbType = "mysql"
 		}
@@ -609,9 +632,9 @@ func (this *MySqlDataOperator) GetConn() (*sql.DB, error) {
 		if err != nil {
 			return nil, err
 		}
-		this.Db = db
+		this.db = db
 	}
-	return this.Db, nil
+	return this.db, nil
 }
 
 func extractDbNameFromDs(dbType string, ds string) string {
