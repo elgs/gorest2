@@ -15,10 +15,6 @@ func (this Gorest) Serve() {
 		w.Header().Set("Access-Control-Allow-Methods", r.Header.Get("Access-Control-Request-Method"))
 		w.Header().Set("Access-Control-Allow-Headers", r.Header.Get("Access-Control-Request-Headers"))
 
-		//		apiTokenId := r.Header.Get("api_token_id")
-		//		apiTokenKey := r.Header.Get("api_token_key")
-		//		dataStoreKey := r.Header.Get("data_store_key")
-
 		if r.Method == "OPTIONS" {
 			return
 		}
