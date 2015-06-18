@@ -2,6 +2,7 @@ package gorest2
 
 import (
 	"database/sql"
+	"strings"
 )
 
 type DataOperator interface {
@@ -20,6 +21,28 @@ type DataOperator interface {
 }
 
 type DefaultDataOperator struct {
+	DataInterceptorRegistry       map[string]DataInterceptor
+	GlobalDataInterceptorRegistry []DataInterceptor
+}
+
+func NewDbo(dataInterceptorRegistry map[string]DataInterceptor, globalDataInterceptorRegistry []DataInterceptor) DataOperator {
+	ret := &DefaultDataOperator{
+		DataInterceptorRegistry:       dataInterceptorRegistry,
+		GlobalDataInterceptorRegistry: globalDataInterceptorRegistry,
+	}
+	return ret
+}
+
+func (this *DefaultDataOperator) RegisterDataInterceptor(id string, dataInterceptor DataInterceptor) {
+	this.DataInterceptorRegistry[strings.ToUpper(id)] = dataInterceptor
+}
+
+func (this *DefaultDataOperator) GetDataInterceptor(id string) DataInterceptor {
+	return this.DataInterceptorRegistry[strings.ToUpper(strings.Replace(id, "`", "", -1))]
+}
+
+func (this *DefaultDataOperator) RegisterGlobalDataInterceptor(globalDataInterceptor DataInterceptor) {
+	this.GlobalDataInterceptorRegistry = append(this.GlobalDataInterceptorRegistry, globalDataInterceptor)
 }
 
 func (this *DefaultDataOperator) Load(resourceId string, id string, fields string, context map[string]interface{}) (map[string]string, error) {

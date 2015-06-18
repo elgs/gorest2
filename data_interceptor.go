@@ -2,24 +2,7 @@ package gorest2
 
 import (
 	"database/sql"
-	"strings"
 )
-
-var dataInterceptorRegistry = make(map[string]DataInterceptor)
-
-func RegisterDataInterceptor(id string, dataInterceptor DataInterceptor) {
-	dataInterceptorRegistry[strings.ToUpper(id)] = dataInterceptor
-}
-
-func GetDataInterceptor(id string) DataInterceptor {
-	return dataInterceptorRegistry[strings.ToUpper(strings.Replace(id, "`", "", -1))]
-}
-
-var GlobalDataInterceptorRegistry = make([]DataInterceptor, 0)
-
-func RegisterGlobalDataInterceptor(globalDataInterceptor DataInterceptor) {
-	GlobalDataInterceptorRegistry = append(GlobalDataInterceptorRegistry, globalDataInterceptor)
-}
 
 type DataInterceptor interface {
 	BeforeLoad(resourceId string, db *sql.DB, fields string, context map[string]interface{}, id string) (bool, error)
