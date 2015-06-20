@@ -19,14 +19,6 @@ type MySqlDataOperator struct {
 	db     *sql.DB
 }
 
-func NewDbo(ds, dbType string) DataOperator {
-	return &MySqlDataOperator{
-		DefaultDataOperator: &DefaultDataOperator{},
-		Ds:                  ds,
-		DbType:              dbType,
-	}
-}
-
 func (this *MySqlDataOperator) Load(tableId string, id string, fields string, context map[string]interface{}) (map[string]string, error) {
 	ret := make(map[string]string, 0)
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
