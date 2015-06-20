@@ -3,11 +3,25 @@ package gorest2
 
 import (
 	"database/sql"
+	"strings"
 )
 
+var DataInterceptorRegistry = map[string]DataInterceptor{}
+var GlobalDataInterceptorRegistry = []DataInterceptor{}
+
+func RegisterDataInterceptor(id string, dataInterceptor DataInterceptor) {
+	DataInterceptorRegistry[strings.ToUpper(id)] = dataInterceptor
+}
+
+func GetDataInterceptor(id string) DataInterceptor {
+	return DataInterceptorRegistry[strings.ToUpper(strings.Replace(id, "`", "", -1))]
+}
+
+func RegisterGlobalDataInterceptor(globalDataInterceptor DataInterceptor) {
+	GlobalDataInterceptorRegistry = append(GlobalDataInterceptorRegistry, globalDataInterceptor)
+}
+
 type DefaultDataOperator struct {
-	DataInterceptorRegistry       map[string]DataInterceptor
-	GlobalDataInterceptorRegistry []DataInterceptor
 }
 
 func (this *DefaultDataOperator) Load(resourceId string, id string, fields string, context map[string]interface{}) (map[string]string, error) {
@@ -45,10 +59,4 @@ func (this *DefaultDataOperator) Exec(resourceId string, context map[string]inte
 }
 func (this *DefaultDataOperator) GetConn() (*sql.DB, error) {
 	return nil, nil
-}
-func (this *DefaultDataOperator) GetDataInterceptorRegistry() map[string]DataInterceptor {
-	return this.DataInterceptorRegistry
-}
-func (this *DefaultDataOperator) GetGlobalDataInterceptorRegistry() []DataInterceptor {
-	return this.GlobalDataInterceptorRegistry
 }

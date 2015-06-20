@@ -21,25 +21,10 @@ type MySqlDataOperator struct {
 
 func NewDbo(ds, dbType string) DataOperator {
 	return &MySqlDataOperator{
-		DefaultDataOperator: &DefaultDataOperator{
-			DataInterceptorRegistry:       make(map[string]DataInterceptor),
-			GlobalDataInterceptorRegistry: make([]DataInterceptor, 0),
-		},
-		Ds:     ds,
-		DbType: dbType,
+		DefaultDataOperator: &DefaultDataOperator{},
+		Ds:                  ds,
+		DbType:              dbType,
 	}
-}
-
-func (this *DefaultDataOperator) RegisterDataInterceptor(id string, dataInterceptor DataInterceptor) {
-	this.DataInterceptorRegistry[strings.ToUpper(id)] = dataInterceptor
-}
-
-func (this *DefaultDataOperator) GetDataInterceptor(id string) DataInterceptor {
-	return this.DataInterceptorRegistry[strings.ToUpper(strings.Replace(id, "`", "", -1))]
-}
-
-func (this *DefaultDataOperator) RegisterGlobalDataInterceptor(globalDataInterceptor DataInterceptor) {
-	this.GlobalDataInterceptorRegistry = append(this.GlobalDataInterceptorRegistry, globalDataInterceptor)
 }
 
 func (this *MySqlDataOperator) Load(tableId string, id string, fields string, context map[string]interface{}) (map[string]string, error) {
@@ -47,13 +32,13 @@ func (this *MySqlDataOperator) Load(tableId string, id string, fields string, co
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
 	db, err := this.GetConn()
 
-	for _, globalDataInterceptor := range this.GlobalDataInterceptorRegistry {
+	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
 		ctn, err := globalDataInterceptor.BeforeLoad(tableId, db, fields, context, id)
 		if !ctn {
 			return ret, err
 		}
 	}
-	dataInterceptor := this.GetDataInterceptor(tableId)
+	dataInterceptor := GetDataInterceptor(tableId)
 	if dataInterceptor != nil {
 		ctn, err := dataInterceptor.BeforeLoad(tableId, db, fields, context, id)
 		if !ctn {
@@ -84,7 +69,7 @@ func (this *MySqlDataOperator) Load(tableId string, id string, fields string, co
 	if dataInterceptor != nil {
 		dataInterceptor.AfterLoad(tableId, db, fields, context, m[0])
 	}
-	for _, globalDataInterceptor := range this.GlobalDataInterceptorRegistry {
+	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
 		globalDataInterceptor.AfterLoad(tableId, db, fields, context, m[0])
 	}
 
@@ -103,13 +88,13 @@ func (this *MySqlDataOperator) ListMap(tableId string, fields string, filter []s
 
 	sort = parseSort(sort)
 	where := parseFilters(filter)
-	for _, globalDataInterceptor := range this.GlobalDataInterceptorRegistry {
+	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
 		ctn, err := globalDataInterceptor.BeforeListMap(tableId, db, fields, context, &where, &sort, &group, start, limit, includeTotal)
 		if !ctn {
 			return ret, -1, err
 		}
 	}
-	dataInterceptor := this.GetDataInterceptor(tableId)
+	dataInterceptor := GetDataInterceptor(tableId)
 	if dataInterceptor != nil {
 		ctn, err := dataInterceptor.BeforeListMap(tableId, db, fields, context, &where, &sort, &group, start, limit, includeTotal)
 		if !ctn {
@@ -142,7 +127,7 @@ func (this *MySqlDataOperator) ListMap(tableId string, fields string, filter []s
 	if dataInterceptor != nil {
 		dataInterceptor.AfterListMap(tableId, db, fields, context, m, int64(cnt))
 	}
-	for _, globalDataInterceptor := range this.GlobalDataInterceptorRegistry {
+	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
 		globalDataInterceptor.AfterListMap(tableId, db, fields, context, m, int64(cnt))
 	}
 
@@ -155,13 +140,13 @@ func (this *MySqlDataOperator) ListArray(tableId string, fields string, filter [
 
 	sort = parseSort(sort)
 	where := parseFilters(filter)
-	for _, globalDataInterceptor := range this.GlobalDataInterceptorRegistry {
+	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
 		ctn, err := globalDataInterceptor.BeforeListArray(tableId, db, fields, context, &where, &sort, &group, start, limit, includeTotal)
 		if !ctn {
 			return nil, nil, -1, err
 		}
 	}
-	dataInterceptor := this.GetDataInterceptor(tableId)
+	dataInterceptor := GetDataInterceptor(tableId)
 	if dataInterceptor != nil {
 		ctn, err := dataInterceptor.BeforeListArray(tableId, db, fields, context, &where, &sort, &group, start, limit, includeTotal)
 		if !ctn {
@@ -194,7 +179,7 @@ func (this *MySqlDataOperator) ListArray(tableId string, fields string, filter [
 	if dataInterceptor != nil {
 		dataInterceptor.AfterListArray(tableId, db, fields, context, h, a, int64(cnt))
 	}
-	for _, globalDataInterceptor := range this.GlobalDataInterceptorRegistry {
+	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
 		globalDataInterceptor.AfterListArray(tableId, db, fields, context, h, a, int64(cnt))
 	}
 
@@ -205,7 +190,7 @@ func (this *MySqlDataOperator) Create(tableId string, data map[string]interface{
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
 	db, err := this.GetConn()
 
-	for _, globalDataInterceptor := range this.GlobalDataInterceptorRegistry {
+	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
 		ctn, err := globalDataInterceptor.BeforeCreate(tableId, db, context, data)
 		if !ctn {
 			if tx, ok := context["tx"].(*sql.Tx); ok {
@@ -214,7 +199,7 @@ func (this *MySqlDataOperator) Create(tableId string, data map[string]interface{
 			return nil, err
 		}
 	}
-	dataInterceptor := this.GetDataInterceptor(tableId)
+	dataInterceptor := GetDataInterceptor(tableId)
 	if dataInterceptor != nil {
 		ctn, err := dataInterceptor.BeforeCreate(tableId, db, context, data)
 		if !ctn {
@@ -271,7 +256,7 @@ func (this *MySqlDataOperator) Create(tableId string, data map[string]interface{
 			return nil, err
 		}
 	}
-	for _, globalDataInterceptor := range this.GlobalDataInterceptorRegistry {
+	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
 		err := globalDataInterceptor.AfterCreate(tableId, db, context, data)
 		if err != nil {
 			if tx, ok := context["tx"].(*sql.Tx); ok {
@@ -291,7 +276,7 @@ func (this *MySqlDataOperator) Update(tableId string, data map[string]interface{
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
 	db, err := this.GetConn()
 
-	for _, globalDataInterceptor := range this.GlobalDataInterceptorRegistry {
+	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
 		ctn, err := globalDataInterceptor.BeforeUpdate(tableId, db, context, data)
 		if !ctn {
 			if tx, ok := context["tx"].(*sql.Tx); ok {
@@ -300,7 +285,7 @@ func (this *MySqlDataOperator) Update(tableId string, data map[string]interface{
 			return 0, err
 		}
 	}
-	dataInterceptor := this.GetDataInterceptor(tableId)
+	dataInterceptor := GetDataInterceptor(tableId)
 	if dataInterceptor != nil {
 		ctn, err := dataInterceptor.BeforeUpdate(tableId, db, context, data)
 		if !ctn {
@@ -386,7 +371,7 @@ func (this *MySqlDataOperator) Update(tableId string, data map[string]interface{
 			return -1, err
 		}
 	}
-	for _, globalDataInterceptor := range this.GlobalDataInterceptorRegistry {
+	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
 		err := globalDataInterceptor.AfterUpdate(tableId, db, context, data)
 		if err != nil {
 			if tx, ok := context["tx"].(*sql.Tx); ok {
@@ -406,7 +391,7 @@ func (this *MySqlDataOperator) Duplicate(tableId string, id string, context map[
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
 	db, err := this.GetConn()
 
-	for _, globalDataInterceptor := range this.GlobalDataInterceptorRegistry {
+	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
 		ctn, err := globalDataInterceptor.BeforeDuplicate(tableId, db, context, id)
 		if !ctn {
 			if tx, ok := context["tx"].(*sql.Tx); ok {
@@ -415,7 +400,7 @@ func (this *MySqlDataOperator) Duplicate(tableId string, id string, context map[
 			return nil, err
 		}
 	}
-	dataInterceptor := this.GetDataInterceptor(tableId)
+	dataInterceptor := GetDataInterceptor(tableId)
 	if dataInterceptor != nil {
 		ctn, err := dataInterceptor.BeforeDuplicate(tableId, db, context, id)
 		if !ctn {
@@ -510,7 +495,7 @@ func (this *MySqlDataOperator) Duplicate(tableId string, id string, context map[
 			return nil, err
 		}
 	}
-	for _, globalDataInterceptor := range this.GlobalDataInterceptorRegistry {
+	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
 		err := globalDataInterceptor.AfterDuplicate(tableId, db, context, id, newId)
 		if err != nil {
 			if tx, ok := context["tx"].(*sql.Tx); ok {
@@ -530,7 +515,7 @@ func (this *MySqlDataOperator) Delete(tableId string, id string, context map[str
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
 	db, err := this.GetConn()
 
-	for _, globalDataInterceptor := range this.GlobalDataInterceptorRegistry {
+	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
 		ctn, err := globalDataInterceptor.BeforeDelete(tableId, db, context, id)
 		if !ctn {
 			if tx, ok := context["tx"].(*sql.Tx); ok {
@@ -539,7 +524,7 @@ func (this *MySqlDataOperator) Delete(tableId string, id string, context map[str
 			return 0, err
 		}
 	}
-	dataInterceptor := this.GetDataInterceptor(tableId)
+	dataInterceptor := GetDataInterceptor(tableId)
 	if dataInterceptor != nil {
 		ctn, err := dataInterceptor.BeforeDelete(tableId, db, context, id)
 		if !ctn {
@@ -607,7 +592,7 @@ func (this *MySqlDataOperator) Delete(tableId string, id string, context map[str
 			return -1, err
 		}
 	}
-	for _, globalDataInterceptor := range this.GlobalDataInterceptorRegistry {
+	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
 		err := globalDataInterceptor.AfterDelete(tableId, db, context, id)
 		if err != nil {
 			if tx, ok := context["tx"].(*sql.Tx); ok {

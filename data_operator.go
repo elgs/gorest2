@@ -17,6 +17,4 @@ type DataOperator interface {
 	QueryArray(resourceId string, start int64, limit int64, includeTotal bool, context map[string]interface{}) ([]string, [][]string, int64, error)
 	Exec(resourceId string, context map[string]interface{}) (int64, error)
 	GetConn() (*sql.DB, error)
-	GetDataInterceptorRegistry() map[string]DataInterceptor
-	GetGlobalDataInterceptorRegistry() []DataInterceptor
 }
