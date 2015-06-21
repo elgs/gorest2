@@ -309,7 +309,7 @@ func (this *MySqlDataOperator) Update(tableId string, data map[string]interface{
 	sets = sets[0 : len(sets)-1]
 	var rowsAffected int64 = 0
 	if tx, ok := context["tx"].(*sql.Tx); ok {
-		load := context["load"].(bool)
+		load, _ := context["load"].(bool)
 		if load {
 			data, err := gosqljson.QueryTxToMap(tx, "upper", "SELECT * FROM "+tableId+" WHERE ID=?", id)
 			if err != nil {
@@ -332,7 +332,7 @@ func (this *MySqlDataOperator) Update(tableId string, data map[string]interface{
 			return -1, err
 		}
 	} else {
-		load := context["load"].(bool)
+		load, _ := context["load"].(bool)
 		if load {
 			data, err := gosqljson.QueryDbToMap(db, "upper", "SELECT * FROM "+tableId+" WHERE ID=?", id)
 			if err != nil {
@@ -529,7 +529,7 @@ func (this *MySqlDataOperator) Delete(tableId string, id string, context map[str
 
 	var rowsAffected int64 = 0
 	if tx, ok := context["tx"].(*sql.Tx); ok {
-		load := context["load"].(bool)
+		load, _ := context["load"].(bool)
 		if load {
 			data, err := gosqljson.QueryTxToMap(tx, "upper", "SELECT * FROM "+tableId+" WHERE ID=?", id)
 			if err != nil {
@@ -553,7 +553,7 @@ func (this *MySqlDataOperator) Delete(tableId string, id string, context map[str
 			return -1, err
 		}
 	} else {
-		load := context["load"].(bool)
+		load, _ := context["load"].(bool)
 		if load {
 			data, err := gosqljson.QueryDbToMap(db, "upper", "SELECT * FROM "+tableId+" WHERE ID=?", id)
 			if err != nil {
