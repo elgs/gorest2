@@ -9,6 +9,16 @@ import (
 	"strings"
 )
 
+var translateBoolParam = func(field string, defaultValue bool) bool {
+	if field == "1" {
+		return true
+	} else if field == "0" {
+		return false
+	} else {
+		return defaultValue
+	}
+}
+
 var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	context := make(map[string]interface{})
 	//	context["api_token_id"] = r.Header.Get("api_token_id")
@@ -34,11 +44,8 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		if len(urlPathData) == 2 ||
-			len(urlPathData[2]) == 0 {
+		if len(urlPathData) == 2 || len(urlPathData[2]) == 0 {
 			//List records.
-			t := r.FormValue("total")
-			a := r.FormValue("array")
 			filter := r.Form["filter"]
 			fields := strings.ToUpper(r.FormValue("fields"))
 			sort := r.FormValue("sort")
@@ -47,14 +54,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			l := r.FormValue("limit")
 			c := r.FormValue("case")
 			context["case"] = c
-			includeTotal := true
-			array := false
-			if t == "0" {
-				includeTotal = false
-			}
-			if a == "1" {
-				array = true
-			}
+			includeTotal := translateBoolParam(r.FormValue("total"), true)
+			array := translateBoolParam(r.FormValue("array"), false)
+			query := translateBoolParam(r.FormValue("query"), false)
 			start, err := strconv.ParseInt(s, 10, 0)
 			if err != nil {
 				start = 0
@@ -73,13 +75,25 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			if array {
 				var headers []string
 				var dataArray [][]string
-				headers, dataArray, total, err = dbo.ListArray(tableId, fields, filter, sort, group, start, limit, includeTotal, context)
-				data = map[string]interface{}{
-					"headers": headers,
-					"data":    dataArray,
+				if query {
+					headers, dataArray, total, err = dbo.QueryArray(tableId, start, limit, includeTotal, context)
+					data = map[string]interface{}{
+						"headers": headers,
+						"data":    dataArray,
+					}
+				} else {
+					headers, dataArray, total, err = dbo.ListArray(tableId, fields, filter, sort, group, start, limit, includeTotal, context)
+					data = map[string]interface{}{
+						"headers": headers,
+						"data":    dataArray,
+					}
 				}
 			} else {
-				data, total, err = dbo.ListMap(tableId, fields, filter, sort, group, start, limit, includeTotal, context)
+				if query {
+					data, total, err = dbo.QueryMap(tableId, start, limit, includeTotal, context)
+				} else {
+					data, total, err = dbo.ListMap(tableId, fields, filter, sort, group, start, limit, includeTotal, context)
+				}
 			}
 			m := map[string]interface{}{
 				"data":  data,
@@ -125,30 +139,48 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		}
 		context["meta"] = meta
 
-		decoder := json.NewDecoder(r.Body)
-		m := make(map[string]interface{})
-		err := decoder.Decode(&m)
-		if err != nil {
-			m["err"] = err.Error()
-			jsonData, _ := json.Marshal(m)
-			jsonString := string(jsonData)
-			fmt.Fprint(w, jsonString)
-			return
+		execValues := r.URL.Query()["exec"]
+		exec := false
+		if execValues != nil && execValues[0] == "1" {
+			exec = true
 		}
-		mUpper := make(map[string]interface{})
-		for k, v := range m {
-			if !strings.HasPrefix(k, "_") {
-				mUpper[strings.ToUpper(k)] = v
+		m := make(map[string]interface{})
+		if exec {
+			data, err := dbo.Exec(tableId, context)
+			m = map[string]interface{}{
+				"data": data,
+			}
+			if err != nil {
+				m["err"] = err.Error()
+			}
+		} else {
+			decoder := json.NewDecoder(r.Body)
+			err := decoder.Decode(&m)
+			if err != nil {
+				m["err"] = err.Error()
+				jsonData, _ := json.Marshal(m)
+				jsonString := string(jsonData)
+				fmt.Fprint(w, jsonString)
+				return
+			}
+			mUpper := make(map[string]interface{})
+			for k, v := range m {
+				if !strings.HasPrefix(k, "_") {
+					mUpper[strings.ToUpper(k)] = v
+				}
+			}
+			data, err := dbo.Create(tableId, mUpper, context)
+			m = map[string]interface{}{
+				"data": data,
+			}
+			if err != nil {
+				m["err"] = err.Error()
 			}
 		}
-		data, err := dbo.Create(tableId, mUpper, context)
-		m = map[string]interface{}{
-			"data": data,
-		}
-		if err != nil {
-			m["err"] = err.Error()
-		}
 		jsonData, err := json.Marshal(m)
+		if err != nil {
+			fmt.Println(err)
+		}
 		jsonString := string(jsonData)
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		fmt.Fprint(w, jsonString)
