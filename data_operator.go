@@ -13,8 +13,8 @@ type DataOperator interface {
 	Duplicate(resourceId string, id string, context map[string]interface{}) (interface{}, error)
 	Delete(resourceId string, id string, context map[string]interface{}) (int64, error)
 	MetaData(resourceId string) ([]map[string]string, error)
-	QueryMap(resourceId string, start int64, limit int64, includeTotal bool, context map[string]interface{}) ([]map[string]string, int64, error)
-	QueryArray(resourceId string, start int64, limit int64, includeTotal bool, context map[string]interface{}) ([]string, [][]string, int64, error)
+	QueryMap(resourceId string, context map[string]interface{}) ([]map[string]string, error)
+	QueryArray(resourceId string, context map[string]interface{}) ([]string, [][]string, error)
 	Exec(resourceId string, context map[string]interface{}) (int64, error)
 	GetConn() (*sql.DB, error)
 }

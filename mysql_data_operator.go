@@ -95,8 +95,8 @@ func (this *MySqlDataOperator) ListMap(tableId string, fields string, filter []s
 	}
 
 	c := context["case"].(string)
-	m, err := gosqljson.QueryDbToMap(db, c,
-		fmt.Sprint("SELECT SQL_CALC_FOUND_ROWS ", fields, " FROM ", tableId, where, parseGroup(group), sort, " LIMIT ?,?"), start, limit)
+	sqlQuery := fmt.Sprint("SELECT SQL_CALC_FOUND_ROWS ", fields, " FROM ", tableId, where, parseGroup(group), sort, " LIMIT ?,?")
+	m, err := gosqljson.QueryDbToMap(db, c, sqlQuery, start, limit)
 	if err != nil {
 		fmt.Println(err)
 		return ret, -1, err

@@ -19,10 +19,10 @@ type DataInterceptor interface {
 	AfterListMap(resourceId string, db *sql.DB, fields string, context map[string]interface{}, data []map[string]string, total int64) error
 	BeforeListArray(resourceId string, db *sql.DB, fields string, context map[string]interface{}, filter *string, sort *string, group *string, start int64, limit int64, includeTotal bool) (bool, error)
 	AfterListArray(resourceId string, db *sql.DB, fields string, context map[string]interface{}, headers []string, data [][]string, total int64) error
-	BeforeQueryMap(resourceId string, db *sql.DB, context map[string]interface{}, start int64, limit int64, includeTotal bool) (bool, error)
-	AfterQueryMap(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]string, total int64) error
-	BeforeQueryArray(resourceId string, db *sql.DB, context map[string]interface{}, start int64, limit int64, includeTotal bool) (bool, error)
-	AfterQueryArray(resourceId string, db *sql.DB, context map[string]interface{}, headers []string, data [][]string, total int64) error
+	BeforeQueryMap(resourceId string, db *sql.DB, context map[string]interface{}) (bool, error)
+	AfterQueryMap(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]string) error
+	BeforeQueryArray(resourceId string, db *sql.DB, context map[string]interface{}) (bool, error)
+	AfterQueryArray(resourceId string, db *sql.DB, context map[string]interface{}, headers []string, data [][]string) error
 	BeforeExec(resourceId string, db *sql.DB, context map[string]interface{}) (bool, error)
 	AfterExec(resourceId string, db *sql.DB, context map[string]interface{}) error
 }
@@ -71,16 +71,16 @@ func (this *DefaultDataInterceptor) BeforeListArray(resourceId string, db *sql.D
 func (this *DefaultDataInterceptor) AfterListArray(resourceId string, db *sql.DB, fields string, context map[string]interface{}, headers []string, data [][]string, total int64) error {
 	return nil
 }
-func (this *DefaultDataInterceptor) BeforeQueryMap(resourceId string, db *sql.DB, context map[string]interface{}, start int64, limit int64, includeTotal bool) (bool, error) {
+func (this *DefaultDataInterceptor) BeforeQueryMap(resourceId string, db *sql.DB, context map[string]interface{}) (bool, error) {
 	return true, nil
 }
-func (this *DefaultDataInterceptor) AfterQueryMap(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]string, total int64) error {
+func (this *DefaultDataInterceptor) AfterQueryMap(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]string) error {
 	return nil
 }
-func (this *DefaultDataInterceptor) BeforeQueryArray(resourceId string, db *sql.DB, context map[string]interface{}, start int64, limit int64, includeTotal bool) (bool, error) {
+func (this *DefaultDataInterceptor) BeforeQueryArray(resourceId string, db *sql.DB, context map[string]interface{}) (bool, error) {
 	return true, nil
 }
-func (this *DefaultDataInterceptor) AfterQueryArray(resourceId string, db *sql.DB, context map[string]interface{}, headers []string, data [][]string, total int64) error {
+func (this *DefaultDataInterceptor) AfterQueryArray(resourceId string, db *sql.DB, context map[string]interface{}, headers []string, data [][]string) error {
 	return nil
 }
 func (this *DefaultDataInterceptor) BeforeExec(resourceId string, db *sql.DB, context map[string]interface{}) (bool, error) {

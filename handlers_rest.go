@@ -46,7 +46,6 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		if len(urlPathData) == 2 || len(urlPathData[2]) == 0 {
 			//List records.
-			filter := r.Form["filter"]
 			fields := strings.ToUpper(r.FormValue("fields"))
 			sort := r.FormValue("sort")
 			group := r.FormValue("group")
@@ -54,6 +53,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			l := r.FormValue("limit")
 			c := r.FormValue("case")
 			context["case"] = c
+			filter := r.Form["filter"]
 			includeTotal := translateBoolParam(r.FormValue("total"), true)
 			array := translateBoolParam(r.FormValue("array"), false)
 			query := translateBoolParam(r.FormValue("query"), false)
@@ -72,35 +72,46 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			}
 			var data interface{}
 			var total int64 = -1
+			m := map[string]interface{}{}
 			if array {
 				var headers []string
 				var dataArray [][]string
 				if query {
-					headers, dataArray, total, err = dbo.QueryArray(tableId, start, limit, includeTotal, context)
-					data = map[string]interface{}{
-						"headers": headers,
-						"data":    dataArray,
+					headers, dataArray, err = dbo.QueryArray(tableId, context)
+					if err != nil {
+						m["err"] = err.Error()
+					} else {
+						m["headers"] = headers
+						m["data"] = dataArray
 					}
+
 				} else {
 					headers, dataArray, total, err = dbo.ListArray(tableId, fields, filter, sort, group, start, limit, includeTotal, context)
-					data = map[string]interface{}{
-						"headers": headers,
-						"data":    dataArray,
+					if err != nil {
+						m["err"] = err.Error()
+					} else {
+						m["headers"] = headers
+						m["data"] = dataArray
+						m["total"] = total
 					}
 				}
 			} else {
 				if query {
-					data, total, err = dbo.QueryMap(tableId, start, limit, includeTotal, context)
+					data, err = dbo.QueryMap(tableId, context)
+					if err != nil {
+						m["err"] = err.Error()
+					} else {
+						m["data"] = data
+					}
 				} else {
 					data, total, err = dbo.ListMap(tableId, fields, filter, sort, group, start, limit, includeTotal, context)
+					if err != nil {
+						m["err"] = err.Error()
+					} else {
+						m["data"] = data
+						m["total"] = total
+					}
 				}
-			}
-			m := map[string]interface{}{
-				"data":  data,
-				"total": total,
-			}
-			if err != nil {
-				m["err"] = err.Error()
 			}
 			jsonData, err := json.Marshal(m)
 			jsonString := string(jsonData)
