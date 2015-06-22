@@ -12,7 +12,6 @@ type DataOperator interface {
 	Update(resourceId string, data map[string]interface{}, context map[string]interface{}) (int64, error)
 	Duplicate(resourceId string, id string, context map[string]interface{}) (interface{}, error)
 	Delete(resourceId string, id string, context map[string]interface{}) (int64, error)
-	MetaData(resourceId string) ([]map[string]string, error)
 	QueryMap(resourceId string, context map[string]interface{}) ([]map[string]string, error)
 	QueryArray(resourceId string, context map[string]interface{}) ([]string, [][]string, error)
 	Exec(resourceId string, context map[string]interface{}) (int64, error)
