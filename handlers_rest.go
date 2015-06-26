@@ -52,6 +52,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			s := r.FormValue("start")
 			l := r.FormValue("limit")
 			c := r.FormValue("case")
+			p := r.FormValue("params")
 			context["case"] = c
 			filter := r.Form["filter"]
 			includeTotal := translateBoolParam(r.FormValue("total"), true)
@@ -70,6 +71,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			if fields == "" {
 				fields = "*"
 			}
+			params := strings.Split(p, ",")
 			var data interface{}
 			var total int64 = -1
 			m := map[string]interface{}{}
@@ -77,7 +79,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				var headers []string
 				var dataArray [][]string
 				if query {
-					headers, dataArray, err = dbo.QueryArray(tableId, context)
+					headers, dataArray, err = dbo.QueryArray(tableId, params, context)
 					if err != nil {
 						m["err"] = err.Error()
 					} else {
@@ -97,7 +99,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				}
 			} else {
 				if query {
-					data, err = dbo.QueryMap(tableId, context)
+					data, err = dbo.QueryMap(tableId, params, context)
 					if err != nil {
 						m["err"] = err.Error()
 					} else {
@@ -155,9 +157,13 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		if execValues != nil && execValues[0] == "1" {
 			exec = true
 		}
+
+		p := r.URL.Query()["params"][0]
+		params := strings.Split(p, ",")
+
 		m := make(map[string]interface{})
 		if exec {
-			data, err := dbo.Exec(tableId, context)
+			data, err := dbo.Exec(tableId, params, context)
 			m = map[string]interface{}{
 				"data": data,
 			}
