@@ -78,6 +78,10 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte("Email already used."))
 				return
 			}
+			parameters := make([]interface{}, len(params))
+			for i, v := range params {
+				parameters[i] = v
+			}
 			var data interface{}
 			var total int64 = -1
 			m := map[string]interface{}{}
@@ -85,7 +89,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				var headers []string
 				var dataArray [][]string
 				if query {
-					headers, dataArray, err = dbo.QueryArray(tableId, params, context)
+					headers, dataArray, err = dbo.QueryArray(tableId, parameters, context)
 					if err != nil {
 						m["err"] = err.Error()
 					} else {
@@ -105,7 +109,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				}
 			} else {
 				if query {
-					data, err = dbo.QueryMap(tableId, params, context)
+					data, err = dbo.QueryMap(tableId, parameters, context)
 					if err != nil {
 						m["err"] = err.Error()
 					} else {
@@ -171,10 +175,13 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("Email already used."))
 			return
 		}
-
+		parameters := make([]interface{}, len(params))
+		for i, v := range params {
+			parameters[i] = v
+		}
 		m := make(map[string]interface{})
 		if exec {
-			data, err := dbo.Exec(tableId, params, context)
+			data, err := dbo.Exec(tableId, parameters, context)
 			m = map[string]interface{}{
 				"data": data,
 			}
