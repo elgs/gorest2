@@ -4,6 +4,7 @@ package gorest2
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/elgs/gosplitargs"
 	"net/http"
 	"strconv"
 	"strings"
@@ -71,7 +72,12 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			if fields == "" {
 				fields = "*"
 			}
-			params := strings.Split(p, ",")
+			params, err := gosplitargs.SplitArgs(p, ",")
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("Email already used."))
+				return
+			}
 			var data interface{}
 			var total int64 = -1
 			m := map[string]interface{}{}
@@ -159,7 +165,12 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		p := r.URL.Query()["params"][0]
-		params := strings.Split(p, ",")
+		params, err := gosplitargs.SplitArgs(p, ",")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Email already used."))
+			return
+		}
 
 		m := make(map[string]interface{})
 		if exec {
