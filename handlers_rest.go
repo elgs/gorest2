@@ -280,12 +280,12 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		// Remove the record.
 		dataId := urlPathData[2]
 
-		load := false
-		l := r.FormValue("load")
-		if l == "1" {
-			load = true
-		}
-		context["load"] = load
+		//		load := false
+		//		l := r.FormValue("load")
+		//		if l == "1" {
+		//			load = true
+		//		}
+		//		context["load"] = load
 
 		data, err := dbo.Delete(tableId, dataId, context)
 
