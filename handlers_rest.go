@@ -168,8 +168,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			exec = true
 		}
 
+		p := ""
 		if len(r.URL.Query()["params"]) > 0 {
-			p := r.URL.Query()["params"][0]
+			p = r.URL.Query()["params"][0]
 		}
 		params, err := gosplitargs.SplitArgs(p, ",")
 		if err != nil {
