@@ -56,7 +56,6 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			p := r.FormValue("params")
 			context["case"] = c
 			filter := r.Form["filter"]
-			includeTotal := translateBoolParam(r.FormValue("total"), true)
 			array := translateBoolParam(r.FormValue("array"), false)
 			query := translateBoolParam(r.FormValue("query"), false)
 			start, err := strconv.ParseInt(s, 10, 0)
@@ -98,7 +97,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 					}
 
 				} else {
-					headers, dataArray, total, err = dbo.ListArray(tableId, fields, filter, sort, group, start, limit, includeTotal, context)
+					headers, dataArray, total, err = dbo.ListArray(tableId, fields, filter, sort, group, start, limit, context)
 					if err != nil {
 						m["err"] = err.Error()
 					} else {
@@ -116,7 +115,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 						m["data"] = data
 					}
 				} else {
-					data, total, err = dbo.ListMap(tableId, fields, filter, sort, group, start, limit, includeTotal, context)
+					data, total, err = dbo.ListMap(tableId, fields, filter, sort, group, start, limit, context)
 					if err != nil {
 						m["err"] = err.Error()
 					} else {

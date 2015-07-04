@@ -70,10 +70,10 @@ func (this *MySqlDataOperator) Load(tableId string, id string, fields string, co
 	} else {
 		return ret, err
 	}
-
 }
+
 func (this *MySqlDataOperator) ListMap(tableId string, fields string, filter []string, sort string, group string,
-	start int64, limit int64, includeTotal bool, context map[string]interface{}) ([]map[string]string, int64, error) {
+	start int64, limit int64, context map[string]interface{}) ([]map[string]string, int64, error) {
 	ret := make([]map[string]string, 0)
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
 	db, err := this.GetConn()
@@ -81,14 +81,14 @@ func (this *MySqlDataOperator) ListMap(tableId string, fields string, filter []s
 	sort = parseSort(sort)
 	where := parseFilters(filter)
 	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
-		ctn, err := globalDataInterceptor.BeforeListMap(tableId, db, fields, context, &where, &sort, &group, start, limit, includeTotal)
+		ctn, err := globalDataInterceptor.BeforeListMap(tableId, db, fields, context, &where, &sort, &group, start, limit)
 		if !ctn {
 			return ret, -1, err
 		}
 	}
 	dataInterceptor := GetDataInterceptor(tableId)
 	if dataInterceptor != nil {
-		ctn, err := dataInterceptor.BeforeListMap(tableId, db, fields, context, &where, &sort, &group, start, limit, includeTotal)
+		ctn, err := dataInterceptor.BeforeListMap(tableId, db, fields, context, &where, &sort, &group, start, limit)
 		if !ctn {
 			return ret, -1, err
 		}
@@ -96,25 +96,29 @@ func (this *MySqlDataOperator) ListMap(tableId string, fields string, filter []s
 
 	c := context["case"].(string)
 	sqlQuery := fmt.Sprint("SELECT SQL_CALC_FOUND_ROWS ", fields, " FROM ", tableId, where, parseGroup(group), sort, " LIMIT ?,?")
-	m, err := gosqljson.QueryDbToMap(db, c, sqlQuery, start, limit)
+	cnt := -1
+	tx, err := db.Begin()
+	if err != nil {
+		return nil, -1, err
+	}
+	m, err := gosqljson.QueryTxToMap(tx, c, sqlQuery, start, limit)
 	if err != nil {
 		fmt.Println(err)
-		return ret, -1, err
+		return nil, -1, err
 	}
-	cnt := -1
-	if includeTotal {
-		c, err := gosqljson.QueryDbToMap(db, "upper",
-			fmt.Sprint("SELECT FOUND_ROWS()"))
-		if err != nil {
-			fmt.Println(err)
-			return ret, -1, err
-		}
-		cnt, err = strconv.Atoi(c[0]["FOUND_ROWS()"])
-		if err != nil {
-			fmt.Println(err)
-			return ret, -1, err
-		}
+
+	cntData, err := gosqljson.QueryTxToMap(tx, "upper",
+		fmt.Sprint("SELECT FOUND_ROWS()"))
+	if err != nil {
+		fmt.Println(err)
+		return nil, -1, err
 	}
+	cnt, err = strconv.Atoi(cntData[0]["FOUND_ROWS()"])
+	if err != nil {
+		fmt.Println(err)
+		return nil, -1, err
+	}
+	tx.Commit()
 
 	if dataInterceptor != nil {
 		dataInterceptor.AfterListMap(tableId, db, fields, context, m, int64(cnt))
@@ -126,47 +130,50 @@ func (this *MySqlDataOperator) ListMap(tableId string, fields string, filter []s
 	return m, int64(cnt), err
 }
 func (this *MySqlDataOperator) ListArray(tableId string, fields string, filter []string, sort string, group string,
-	start int64, limit int64, includeTotal bool, context map[string]interface{}) ([]string, [][]string, int64, error) {
+	start int64, limit int64, context map[string]interface{}) ([]string, [][]string, int64, error) {
 	tableId = normalizeTableId(tableId, this.DbType, this.Ds)
 	db, err := this.GetConn()
 
 	sort = parseSort(sort)
 	where := parseFilters(filter)
 	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
-		ctn, err := globalDataInterceptor.BeforeListArray(tableId, db, fields, context, &where, &sort, &group, start, limit, includeTotal)
+		ctn, err := globalDataInterceptor.BeforeListArray(tableId, db, fields, context, &where, &sort, &group, start, limit)
 		if !ctn {
 			return nil, nil, -1, err
 		}
 	}
 	dataInterceptor := GetDataInterceptor(tableId)
 	if dataInterceptor != nil {
-		ctn, err := dataInterceptor.BeforeListArray(tableId, db, fields, context, &where, &sort, &group, start, limit, includeTotal)
+		ctn, err := dataInterceptor.BeforeListArray(tableId, db, fields, context, &where, &sort, &group, start, limit)
 		if !ctn {
 			return nil, nil, -1, err
 		}
 	}
 
 	c := context["case"].(string)
-	h, a, err := gosqljson.QueryDbToArray(db, c,
+	tx, err := db.Begin()
+	if err != nil {
+		return nil, nil, -1, err
+	}
+	h, a, err := gosqljson.QueryTxToArray(tx, c,
 		fmt.Sprint("SELECT SQL_CALC_FOUND_ROWS ", fields, " FROM ", tableId, where, parseGroup(group), sort, " LIMIT ?,?"), start, limit)
 	if err != nil {
 		fmt.Println(err)
 		return nil, nil, -1, err
 	}
 	cnt := -1
-	if includeTotal {
-		c, err := gosqljson.QueryDbToMap(db, "upper",
-			fmt.Sprint("SELECT FOUND_ROWS()"))
-		if err != nil {
-			fmt.Println(err)
-			return nil, nil, -1, err
-		}
-		cnt, err = strconv.Atoi(c[0]["FOUND_ROWS()"])
-		if err != nil {
-			fmt.Println(err)
-			return nil, nil, -1, err
-		}
+	cntData, err := gosqljson.QueryTxToMap(tx, "upper",
+		fmt.Sprint("SELECT FOUND_ROWS()"))
+	if err != nil {
+		fmt.Println(err)
+		return nil, nil, -1, err
 	}
+	cnt, err = strconv.Atoi(cntData[0]["FOUND_ROWS()"])
+	if err != nil {
+		fmt.Println(err)
+		return nil, nil, -1, err
+	}
+	tx.Commit()
 
 	if dataInterceptor != nil {
 		dataInterceptor.AfterListArray(tableId, db, fields, context, h, a, int64(cnt))
