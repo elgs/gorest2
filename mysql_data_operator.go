@@ -99,10 +99,13 @@ func (this *MySqlDataOperator) ListMap(tableId string, fields string, filter []s
 	cnt := -1
 	tx, err := db.Begin()
 	if err != nil {
+		tx.Rollback()
+		fmt.Println(err)
 		return nil, -1, err
 	}
 	m, err := gosqljson.QueryTxToMap(tx, c, sqlQuery, start, limit)
 	if err != nil {
+		tx.Rollback()
 		fmt.Println(err)
 		return nil, -1, err
 	}
@@ -110,11 +113,13 @@ func (this *MySqlDataOperator) ListMap(tableId string, fields string, filter []s
 	cntData, err := gosqljson.QueryTxToMap(tx, "upper",
 		fmt.Sprint("SELECT FOUND_ROWS()"))
 	if err != nil {
+		tx.Rollback()
 		fmt.Println(err)
 		return nil, -1, err
 	}
 	cnt, err = strconv.Atoi(cntData[0]["FOUND_ROWS()"])
 	if err != nil {
+		tx.Rollback()
 		fmt.Println(err)
 		return nil, -1, err
 	}
@@ -153,11 +158,14 @@ func (this *MySqlDataOperator) ListArray(tableId string, fields string, filter [
 	c := context["case"].(string)
 	tx, err := db.Begin()
 	if err != nil {
+		tx.Rollback()
+		fmt.Println(err)
 		return nil, nil, -1, err
 	}
 	h, a, err := gosqljson.QueryTxToArray(tx, c,
 		fmt.Sprint("SELECT SQL_CALC_FOUND_ROWS ", fields, " FROM ", tableId, where, parseGroup(group), sort, " LIMIT ?,?"), start, limit)
 	if err != nil {
+		tx.Rollback()
 		fmt.Println(err)
 		return nil, nil, -1, err
 	}
@@ -165,11 +173,13 @@ func (this *MySqlDataOperator) ListArray(tableId string, fields string, filter [
 	cntData, err := gosqljson.QueryTxToMap(tx, "upper",
 		fmt.Sprint("SELECT FOUND_ROWS()"))
 	if err != nil {
+		tx.Rollback()
 		fmt.Println(err)
 		return nil, nil, -1, err
 	}
 	cnt, err = strconv.Atoi(cntData[0]["FOUND_ROWS()"])
 	if err != nil {
+		tx.Rollback()
 		fmt.Println(err)
 		return nil, nil, -1, err
 	}
