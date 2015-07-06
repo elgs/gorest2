@@ -9,6 +9,7 @@ import (
 var DataInterceptorRegistry = map[string]DataInterceptor{}
 var GlobalDataInterceptorRegistry = []DataInterceptor{}
 
+var GlobalHandlerInterceptorRegistry = []HandlerInterceptor{}
 var HandlerInterceptorRegistry = map[string]HandlerInterceptor{}
 
 func RegisterDataInterceptor(id string, dataInterceptor DataInterceptor) {
@@ -47,8 +48,8 @@ type DataInterceptor interface {
 }
 
 type HandlerInterceptor interface {
-	BeforeHandle(w http.ResponseWriter, r *http.Request) bool
-	AfterHandle(w http.ResponseWriter, r *http.Request)
+	BeforeHandle(w http.ResponseWriter, r *http.Request) (bool, error)
+	AfterHandle(w http.ResponseWriter, r *http.Request) error
 }
 
 type DefaultDataInterceptor struct{}
@@ -115,7 +116,9 @@ func (this *DefaultDataInterceptor) AfterExec(resourceId string, params []interf
 	return nil
 }
 
-func (this *DefaultHandlerInterceptor) BeforeHandle(w http.ResponseWriter, r *http.Request) bool {
-	return true
+func (this *DefaultHandlerInterceptor) BeforeHandle(w http.ResponseWriter, r *http.Request) (bool, error) {
+	return true, nil
 }
-func (this *DefaultHandlerInterceptor) AfterHandle(w http.ResponseWriter, r *http.Request) {}
+func (this *DefaultHandlerInterceptor) AfterHandle(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}

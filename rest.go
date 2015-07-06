@@ -24,6 +24,21 @@ func (this Gorest) Serve() {
 		if strings.HasPrefix(urlPath, "/api/") {
 			dataHandler = GetHandler("/api")
 		} else {
+			for _, globalHandlerInterceptor := range GlobalHandlerInterceptorRegistry {
+				ctn, err := globalHandlerInterceptor.BeforeHandle(w, r)
+				if !ctn || err != nil {
+					fmt.Fprint(w, err.Error())
+					return
+				}
+			}
+			handlerInterceptor := HandlerInterceptorRegistry[""]
+			if handlerInterceptor != nil {
+				ctn, err := handlerInterceptor.BeforeHandle(w, r)
+				if !ctn || err != nil {
+					fmt.Fprint(w, err.Error())
+					return
+				}
+			}
 			dataHandler = GetHandler(urlPath)
 		}
 		dataHandler(w, r)
