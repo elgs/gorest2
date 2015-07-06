@@ -2,7 +2,26 @@ package gorest2
 
 import (
 	"database/sql"
+	"net/http"
+	"strings"
 )
+
+var DataInterceptorRegistry = map[string]DataInterceptor{}
+var GlobalDataInterceptorRegistry = []DataInterceptor{}
+
+var HandlerInterceptorRegistry = map[string]HandlerInterceptor{}
+
+func RegisterDataInterceptor(id string, dataInterceptor DataInterceptor) {
+	DataInterceptorRegistry[strings.ToUpper(id)] = dataInterceptor
+}
+
+func GetDataInterceptor(id string) DataInterceptor {
+	return DataInterceptorRegistry[strings.ToUpper(strings.Replace(id, "`", "", -1))]
+}
+
+func RegisterGlobalDataInterceptor(globalDataInterceptor DataInterceptor) {
+	GlobalDataInterceptorRegistry = append(GlobalDataInterceptorRegistry, globalDataInterceptor)
+}
 
 type DataInterceptor interface {
 	BeforeLoad(resourceId string, db *sql.DB, fields string, context map[string]interface{}, id string) (bool, error)
@@ -27,7 +46,13 @@ type DataInterceptor interface {
 	AfterExec(resourceId string, params []interface{}, db *sql.DB, context map[string]interface{}) error
 }
 
+type HandlerInterceptor interface {
+	BeforeHandle(w http.ResponseWriter, r *http.Request) bool
+	AfterHandle(w http.ResponseWriter, r *http.Request)
+}
+
 type DefaultDataInterceptor struct{}
+type DefaultHandlerInterceptor struct{}
 
 func (this *DefaultDataInterceptor) BeforeLoad(resourceId string, db *sql.DB, fields string, context map[string]interface{}, id string) (bool, error) {
 	return true, nil
@@ -89,3 +114,8 @@ func (this *DefaultDataInterceptor) BeforeExec(resourceId string, params []inter
 func (this *DefaultDataInterceptor) AfterExec(resourceId string, params []interface{}, db *sql.DB, context map[string]interface{}) error {
 	return nil
 }
+
+func (this *DefaultHandlerInterceptor) BeforeHandle(w http.ResponseWriter, r *http.Request) bool {
+	return true
+}
+func (this *DefaultHandlerInterceptor) AfterHandle(w http.ResponseWriter, r *http.Request) {}

@@ -3,23 +3,7 @@ package gorest2
 
 import (
 	"database/sql"
-	"strings"
 )
-
-var DataInterceptorRegistry = map[string]DataInterceptor{}
-var GlobalDataInterceptorRegistry = []DataInterceptor{}
-
-func RegisterDataInterceptor(id string, dataInterceptor DataInterceptor) {
-	DataInterceptorRegistry[strings.ToUpper(id)] = dataInterceptor
-}
-
-func GetDataInterceptor(id string) DataInterceptor {
-	return DataInterceptorRegistry[strings.ToUpper(strings.Replace(id, "`", "", -1))]
-}
-
-func RegisterGlobalDataInterceptor(globalDataInterceptor DataInterceptor) {
-	GlobalDataInterceptorRegistry = append(GlobalDataInterceptorRegistry, globalDataInterceptor)
-}
 
 type DefaultDataOperator struct {
 }
