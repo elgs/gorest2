@@ -23,7 +23,13 @@ func (this Gorest) Serve() {
 		var dataHandler func(w http.ResponseWriter, r *http.Request)
 		if strings.HasPrefix(urlPath, "/api/") {
 			dataHandler = GetHandler("/api")
+			dataHandler(w, r)
 		} else {
+			dataHandler = GetHandler(urlPath)
+			if dataHandler == nil {
+				http.Error(w, "Not found.", http.StatusNotFound)
+				return
+			}
 			for _, globalHandlerInterceptor := range GlobalHandlerInterceptorRegistry {
 				ctn, err := globalHandlerInterceptor.BeforeHandle(w, r)
 				if !ctn || err != nil {
@@ -31,7 +37,7 @@ func (this Gorest) Serve() {
 					return
 				}
 			}
-			handlerInterceptor := HandlerInterceptorRegistry[""]
+			handlerInterceptor := HandlerInterceptorRegistry[urlPath]
 			if handlerInterceptor != nil {
 				ctn, err := handlerInterceptor.BeforeHandle(w, r)
 				if !ctn || err != nil {
@@ -39,9 +45,8 @@ func (this Gorest) Serve() {
 					return
 				}
 			}
-			dataHandler = GetHandler(urlPath)
+			dataHandler(w, r)
 		}
-		dataHandler(w, r)
 	}
 	http.HandleFunc("/", handler)
 
