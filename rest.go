@@ -46,15 +46,15 @@ func (this Gorest) Serve() {
 				}
 			}
 			dataHandler(w, r)
-			for _, globalHandlerInterceptor := range GlobalHandlerInterceptorRegistry {
-				err := globalHandlerInterceptor.AfterHandle(w, r)
+			if handlerInterceptor != nil {
+				err := handlerInterceptor.AfterHandle(w, r)
 				if err != nil {
 					fmt.Fprint(w, err.Error())
 					return
 				}
 			}
-			if handlerInterceptor != nil {
-				err := handlerInterceptor.AfterHandle(w, r)
+			for _, globalHandlerInterceptor := range GlobalHandlerInterceptorRegistry {
+				err := globalHandlerInterceptor.AfterHandle(w, r)
 				if err != nil {
 					fmt.Fprint(w, err.Error())
 					return
