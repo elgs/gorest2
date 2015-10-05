@@ -43,8 +43,8 @@ type DataInterceptor interface {
 	AfterQueryMap(resourceId string, params []interface{}, db *sql.DB, context map[string]interface{}, data []map[string]string) error
 	BeforeQueryArray(resourceId string, params []interface{}, db *sql.DB, context map[string]interface{}) (bool, error)
 	AfterQueryArray(resourceId string, params []interface{}, db *sql.DB, context map[string]interface{}, headers []string, data [][]string) error
-	BeforeExec(resourceId string, params []interface{}, db *sql.DB, context map[string]interface{}) (bool, error)
-	AfterExec(resourceId string, params []interface{}, db *sql.DB, context map[string]interface{}) error
+	BeforeExec(resourceId string, params []interface{}, tx *sql.Tx, context map[string]interface{}) (bool, error)
+	AfterExec(resourceId string, params []interface{}, tx *sql.Tx, context map[string]interface{}) error
 }
 
 type HandlerInterceptor interface {
@@ -109,10 +109,10 @@ func (this *DefaultDataInterceptor) BeforeQueryArray(resourceId string, params [
 func (this *DefaultDataInterceptor) AfterQueryArray(resourceId string, params []interface{}, db *sql.DB, context map[string]interface{}, headers []string, data [][]string) error {
 	return nil
 }
-func (this *DefaultDataInterceptor) BeforeExec(resourceId string, params []interface{}, db *sql.DB, context map[string]interface{}) (bool, error) {
+func (this *DefaultDataInterceptor) BeforeExec(resourceId string, params []interface{}, tx *sql.Tx, context map[string]interface{}) (bool, error) {
 	return true, nil
 }
-func (this *DefaultDataInterceptor) AfterExec(resourceId string, params []interface{}, db *sql.DB, context map[string]interface{}) error {
+func (this *DefaultDataInterceptor) AfterExec(resourceId string, params []interface{}, tx *sql.Tx, context map[string]interface{}) error {
 	return nil
 }
 
