@@ -14,6 +14,6 @@ type DataOperator interface {
 	Delete(resourceId string, id string, context map[string]interface{}) (int64, error)
 	QueryMap(resourceId string, params []interface{}, context map[string]interface{}) ([]map[string]string, error)
 	QueryArray(resourceId string, params []interface{}, context map[string]interface{}) ([]string, [][]string, error)
-	Exec(resourceId string, params []interface{}, context map[string]interface{}) (int64, error)
+	Exec(resourceId string, params []interface{}, context map[string]interface{}) ([]int64, error)
 	GetConn() (*sql.DB, error)
 }
