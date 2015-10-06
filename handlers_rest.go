@@ -167,7 +167,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			exec = true
 		}
 
-		parameters := make([]interface{}, 0)
+		parameters := make([]interface{}, 0, 10)
 		p := ""
 		if len(r.URL.Query()["params"]) > 0 {
 			p = r.URL.Query()["params"][0]
@@ -178,8 +178,8 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(err.Error()))
 			return
 		}
-		for i, v := range params {
-			parameters[i] = v
+		for _, v := range params {
+			parameters = append(parameters, v)
 		}
 
 		m := make(map[string]interface{})
