@@ -167,26 +167,19 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			exec = true
 		}
 
-		noParamValues := r.URL.Query()["noparam"]
-		noParam := false
-		if noParamValues != nil && noParamValues[0] == "1" {
-			noParam = true
-		}
 		parameters := make([]interface{}, 0)
-		if !noParam {
-			p := ""
-			if len(r.URL.Query()["params"]) > 0 {
-				p = r.URL.Query()["params"][0]
-			}
-			params, err := gosplitargs.SplitArgs(p, ",", true)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
-				return
-			}
-			for i, v := range params {
-				parameters[i] = v
-			}
+		p := ""
+		if len(r.URL.Query()["params"]) > 0 {
+			p = r.URL.Query()["params"][0]
+		}
+		params, err := gosplitargs.SplitArgs(p, ",", true)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		for i, v := range params {
+			parameters[i] = v
 		}
 
 		m := make(map[string]interface{})
