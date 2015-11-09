@@ -23,42 +23,41 @@ func (this Gorest) Serve() {
 		var dataHandler func(w http.ResponseWriter, r *http.Request)
 		if strings.HasPrefix(urlPath, "/api/") {
 			dataHandler = GetHandler("/api")
-			dataHandler(w, r)
 		} else {
 			dataHandler = GetHandler(urlPath)
-			if dataHandler == nil {
-				http.Error(w, "Not found.", http.StatusNotFound)
+		}
+		if dataHandler == nil {
+			http.Error(w, "Not found.", http.StatusNotFound)
+			return
+		}
+		for _, globalHandlerInterceptor := range GlobalHandlerInterceptorRegistry {
+			ctn, err := globalHandlerInterceptor.BeforeHandle(w, r)
+			if !ctn || err != nil {
+				fmt.Fprint(w, err.Error())
 				return
 			}
-			for _, globalHandlerInterceptor := range GlobalHandlerInterceptorRegistry {
-				ctn, err := globalHandlerInterceptor.BeforeHandle(w, r)
-				if !ctn || err != nil {
-					fmt.Fprint(w, err.Error())
-					return
-				}
+		}
+		handlerInterceptor := HandlerInterceptorRegistry[urlPath]
+		if handlerInterceptor != nil {
+			ctn, err := handlerInterceptor.BeforeHandle(w, r)
+			if !ctn || err != nil {
+				fmt.Fprint(w, err.Error())
+				return
 			}
-			handlerInterceptor := HandlerInterceptorRegistry[urlPath]
-			if handlerInterceptor != nil {
-				ctn, err := handlerInterceptor.BeforeHandle(w, r)
-				if !ctn || err != nil {
-					fmt.Fprint(w, err.Error())
-					return
-				}
+		}
+		dataHandler(w, r)
+		if handlerInterceptor != nil {
+			err := handlerInterceptor.AfterHandle(w, r)
+			if err != nil {
+				fmt.Fprint(w, err.Error())
+				return
 			}
-			dataHandler(w, r)
-			if handlerInterceptor != nil {
-				err := handlerInterceptor.AfterHandle(w, r)
-				if err != nil {
-					fmt.Fprint(w, err.Error())
-					return
-				}
-			}
-			for _, globalHandlerInterceptor := range GlobalHandlerInterceptorRegistry {
-				err := globalHandlerInterceptor.AfterHandle(w, r)
-				if err != nil {
-					fmt.Fprint(w, err.Error())
-					return
-				}
+		}
+		for _, globalHandlerInterceptor := range GlobalHandlerInterceptorRegistry {
+			err := globalHandlerInterceptor.AfterHandle(w, r)
+			if err != nil {
+				fmt.Fprint(w, err.Error())
+				return
 			}
 		}
 	}
