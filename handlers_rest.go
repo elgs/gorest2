@@ -39,6 +39,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	clientIp := strings.Split(r.RemoteAddr, ":")[0]
+	context["client_ip"] = clientIp
+
 	urlPath := r.URL.Path
 	urlPathData := strings.Split(urlPath[1:], "/")
 	tableId := urlPathData[1]
