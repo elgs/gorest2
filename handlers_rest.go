@@ -170,29 +170,28 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			exec = true
 		}
 
-		parameters := make([]interface{}, 0, 10)
-		p := ""
-		if len(r.URL.Query()["params"]) > 0 {
-			p = r.URL.Query()["params"][0]
-		}
-		params, err := gosplitargs.SplitArgs(p, ",", true)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
-		for _, v := range params {
-			parameters = append(parameters, v)
-		}
-
 		m := make(map[string]interface{})
 		if exec {
+			parameters := make([]interface{}, 0, 10)
+			p := r.FormValue("params")
+			params, err := gosplitargs.SplitArgs(p, ",", false)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
+				return
+			}
+			for _, v := range params {
+				parameters = append(parameters, v)
+			}
 			data, err := dbo.Exec(tableId, parameters, context)
 			m = map[string]interface{}{
 				"data": data,
 			}
 			if err != nil {
 				m["err"] = err.Error()
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
+				return
 			}
 		} else {
 			decoder := json.NewDecoder(r.Body)
@@ -216,11 +215,17 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			}
 			if err != nil {
 				m["err"] = err.Error()
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
+				return
 			}
 		}
 		jsonData, err := json.Marshal(m)
 		if err != nil {
 			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
 		}
 		jsonString := string(jsonData)
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
