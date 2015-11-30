@@ -74,10 +74,10 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			if fields == "" {
 				fields = "*"
 			}
-			params, err := gosplitargs.SplitArgs(p, ",", true)
+			params, err := gosplitargs.SplitArgs(p, ",", false)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("Email already used."))
+				w.Write([]byte(err.Error()))
 				return
 			}
 			parameters := make([]interface{}, len(params))
