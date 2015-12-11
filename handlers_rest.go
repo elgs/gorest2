@@ -116,8 +116,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				if query {
 					data, err = dbo.QueryMap(tableId, parameters, context)
 					if err != nil {
+						fmt.Println(err.Error())
 						w.WriteHeader(http.StatusInternalServerError)
-						w.Write([]byte(err.Error()))
+						fmt.Fprint(w, err)
 						return
 					} else {
 						m["data"] = data
