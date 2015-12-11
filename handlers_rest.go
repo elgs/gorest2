@@ -22,7 +22,6 @@ var translateBoolParam = func(field string, defaultValue bool) bool {
 
 var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	context := make(map[string]interface{})
-	//	context["api_token_id"] = r.Header.Get("api_token_id")
 	context["token"] = r.Header.Get("token")
 
 	projectId := r.Header.Get("app_id")
@@ -93,7 +92,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				if query {
 					headers, dataArray, err = dbo.QueryArray(tableId, parameters, context)
 					if err != nil {
-						m["err"] = err.Error()
+						w.WriteHeader(http.StatusInternalServerError)
+						w.Write([]byte(err.Error()))
+						return
 					} else {
 						m["headers"] = headers
 						m["data"] = dataArray
@@ -102,7 +103,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				} else {
 					headers, dataArray, total, err = dbo.ListArray(tableId, fields, filter, sort, group, start, limit, context)
 					if err != nil {
-						m["err"] = err.Error()
+						w.WriteHeader(http.StatusInternalServerError)
+						w.Write([]byte(err.Error()))
+						return
 					} else {
 						m["headers"] = headers
 						m["data"] = dataArray
@@ -113,14 +116,18 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				if query {
 					data, err = dbo.QueryMap(tableId, parameters, context)
 					if err != nil {
-						m["err"] = err.Error()
+						w.WriteHeader(http.StatusInternalServerError)
+						w.Write([]byte(err.Error()))
+						return
 					} else {
 						m["data"] = data
 					}
 				} else {
 					data, total, err = dbo.ListMap(tableId, fields, filter, sort, group, start, limit, context)
 					if err != nil {
-						m["err"] = err.Error()
+						w.WriteHeader(http.StatusInternalServerError)
+						w.Write([]byte(err.Error()))
+						return
 					} else {
 						m["data"] = data
 						m["total"] = total
@@ -130,6 +137,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			jsonData, err := json.Marshal(m)
 			jsonString := string(jsonData)
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			fmt.Println(jsonString)
 			fmt.Fprint(w, jsonString)
 		} else {
 			// Load record by id.
@@ -148,7 +156,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				"data": data,
 			}
 			if err != nil {
-				m["err"] = err.Error()
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
+				return
 			}
 			jsonData, _ := json.Marshal(m)
 			jsonString := string(jsonData)
@@ -188,7 +198,6 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				"data": data,
 			}
 			if err != nil {
-				m["err"] = err.Error()
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(err.Error()))
 				return
@@ -197,10 +206,8 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			decoder := json.NewDecoder(r.Body)
 			err := decoder.Decode(&m)
 			if err != nil {
-				m["err"] = err.Error()
-				jsonData, _ := json.Marshal(m)
-				jsonString := string(jsonData)
-				fmt.Fprint(w, jsonString)
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
 				return
 			}
 			mUpper := make(map[string]interface{})
@@ -214,7 +221,6 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				"data": data,
 			}
 			if err != nil {
-				m["err"] = err.Error()
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(err.Error()))
 				return
@@ -239,7 +245,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			"data": data,
 		}
 		if err != nil {
-			m["err"] = err.Error()
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
 		}
 		jsonData, err := json.Marshal(m)
 		jsonString := string(jsonData)
@@ -281,7 +289,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			"data": data,
 		}
 		if err != nil {
-			m["err"] = err.Error()
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
 		}
 		jsonData, err := json.Marshal(m)
 		jsonString := string(jsonData)
@@ -304,7 +314,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			"data": data,
 		}
 		if err != nil {
-			m["err"] = err.Error()
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
 		}
 		jsonData, err := json.Marshal(m)
 		jsonString := string(jsonData)
