@@ -138,7 +138,6 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			jsonData, err := json.Marshal(m)
 			jsonString := string(jsonData)
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
-			fmt.Println(jsonString)
 			fmt.Fprint(w, jsonString)
 		} else {
 			// Load record by id.
