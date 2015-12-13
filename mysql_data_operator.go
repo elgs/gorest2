@@ -221,7 +221,7 @@ func (this *MySqlDataOperator) Create(tableId string, data map[string]interface{
 
 	// Create the record
 	if data["ID"] == nil || data["ID"].(string) == "" {
-		data["ID"] = uuid.NewV4().String()
+		data["ID"] = strings.Replace(uuid.NewV4().String(), "-", "", -1)
 	}
 	dataLen := len(data)
 	values := make([]interface{}, 0, dataLen)
@@ -420,7 +420,7 @@ func (this *MySqlDataOperator) Duplicate(tableId string, id string, context map[
 		}
 	}
 
-	newId := uuid.NewV4().String()
+	newId := strings.Replace(uuid.NewV4().String(), "-", "", -1)
 	// Duplicate the record
 	if tx, ok := context["tx"].(*sql.Tx); ok {
 		data, err := gosqljson.QueryTxToMap(tx, "upper",
