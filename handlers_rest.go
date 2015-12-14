@@ -56,6 +56,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			l := r.FormValue("limit")
 			c := r.FormValue("case")
 			p := r.FormValue("params")
+			qp := r.FormValue("query_params")
 			context["case"] = c
 			filter := r.Form["filter"]
 			array := translateBoolParam(r.FormValue("array"), false)
@@ -83,6 +84,17 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			for i, v := range params {
 				parameters[i] = v
 			}
+
+			queryParams, err := gosplitargs.SplitArgs(qp, ",", false)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
+				return
+			}
+			queryParameters := make([]interface{}, len(queryParams))
+			for i, v := range queryParams {
+				queryParameters[i] = v
+			}
 			var data interface{}
 			var total int64 = -1
 			m := map[string]interface{}{}
@@ -90,7 +102,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				var headers []string
 				var dataArray [][]string
 				if query {
-					headers, dataArray, err = dbo.QueryArray(tableId, parameters, context)
+					headers, dataArray, err = dbo.QueryArray(tableId, parameters, queryParameters, context)
 					if err != nil {
 						w.WriteHeader(http.StatusInternalServerError)
 						w.Write([]byte(err.Error()))
@@ -114,7 +126,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				}
 			} else {
 				if query {
-					data, err = dbo.QueryMap(tableId, parameters, context)
+					data, err = dbo.QueryMap(tableId, parameters, queryParameters, context)
 					if err != nil {
 						fmt.Println(err.Error())
 						w.WriteHeader(http.StatusInternalServerError)
@@ -184,6 +196,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		if exec {
 			parameters := make([]interface{}, 0, 10)
 			p := r.FormValue("params")
+			qp := r.FormValue("query_params")
 			params, err := gosplitargs.SplitArgs(p, ",", false)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -193,7 +206,18 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			for _, v := range params {
 				parameters = append(parameters, v)
 			}
-			data, err := dbo.Exec(tableId, parameters, context)
+			queryParams, err := gosplitargs.SplitArgs(qp, ",", false)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
+				return
+			}
+			queryParameters := make([]interface{}, len(queryParams))
+			for i, v := range queryParams {
+				queryParameters[i] = v
+			}
+
+			data, err := dbo.Exec(tableId, parameters, queryParameters, context)
 			m = map[string]interface{}{
 				"data": data,
 			}
