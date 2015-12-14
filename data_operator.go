@@ -12,8 +12,8 @@ type DataOperator interface {
 	Update(resourceId string, data map[string]interface{}, context map[string]interface{}) (int64, error)
 	Duplicate(resourceId string, id string, context map[string]interface{}) (interface{}, error)
 	Delete(resourceId string, id string, context map[string]interface{}) (int64, error)
-	QueryMap(resourceId string, params []interface{}, queryParams []interface{}, context map[string]interface{}) ([]map[string]string, error)
-	QueryArray(resourceId string, params []interface{}, queryParams []interface{}, context map[string]interface{}) ([]string, [][]string, error)
-	Exec(resourceId string, params []interface{}, queryParams []interface{}, context map[string]interface{}) ([]int64, error)
+	QueryMap(resourceId string, params []interface{}, queryParams []string, context map[string]interface{}) ([]map[string]string, error)
+	QueryArray(resourceId string, params []interface{}, queryParams []string, context map[string]interface{}) ([]string, [][]string, error)
+	Exec(resourceId string, params []interface{}, queryParams []string, context map[string]interface{}) ([]int64, error)
 	GetConn() (*sql.DB, error)
 }

@@ -91,10 +91,6 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte(err.Error()))
 				return
 			}
-			queryParameters := make([]interface{}, len(queryParams))
-			for i, v := range queryParams {
-				queryParameters[i] = v
-			}
 			var data interface{}
 			var total int64 = -1
 			m := map[string]interface{}{}
@@ -102,7 +98,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				var headers []string
 				var dataArray [][]string
 				if query {
-					headers, dataArray, err = dbo.QueryArray(tableId, parameters, queryParameters, context)
+					headers, dataArray, err = dbo.QueryArray(tableId, parameters, queryParams, context)
 					if err != nil {
 						w.WriteHeader(http.StatusInternalServerError)
 						w.Write([]byte(err.Error()))
@@ -126,7 +122,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				}
 			} else {
 				if query {
-					data, err = dbo.QueryMap(tableId, parameters, queryParameters, context)
+					data, err = dbo.QueryMap(tableId, parameters, queryParams, context)
 					if err != nil {
 						fmt.Println(err.Error())
 						w.WriteHeader(http.StatusInternalServerError)
@@ -212,12 +208,8 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte(err.Error()))
 				return
 			}
-			queryParameters := make([]interface{}, len(queryParams))
-			for i, v := range queryParams {
-				queryParameters[i] = v
-			}
 
-			data, err := dbo.Exec(tableId, parameters, queryParameters, context)
+			data, err := dbo.Exec(tableId, parameters, queryParams, context)
 			m = map[string]interface{}{
 				"data": data,
 			}
