@@ -126,10 +126,10 @@ func (this *MySqlDataOperator) ListMap(tableId string, fields string, filter []s
 	tx.Commit()
 
 	if dataInterceptor != nil {
-		dataInterceptor.AfterListMap(tableId, db, fields, context, m, int64(cnt))
+		dataInterceptor.AfterListMap(tableId, db, fields, context, &m, int64(cnt))
 	}
 	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
-		globalDataInterceptor.AfterListMap(tableId, db, fields, context, m, int64(cnt))
+		globalDataInterceptor.AfterListMap(tableId, db, fields, context, &m, int64(cnt))
 	}
 
 	return m, int64(cnt), err
@@ -186,10 +186,10 @@ func (this *MySqlDataOperator) ListArray(tableId string, fields string, filter [
 	tx.Commit()
 
 	if dataInterceptor != nil {
-		dataInterceptor.AfterListArray(tableId, db, fields, context, h, a, int64(cnt))
+		dataInterceptor.AfterListArray(tableId, db, fields, context, &h, &a, int64(cnt))
 	}
 	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
-		globalDataInterceptor.AfterListArray(tableId, db, fields, context, h, a, int64(cnt))
+		globalDataInterceptor.AfterListArray(tableId, db, fields, context, &h, &a, int64(cnt))
 	}
 
 	return h, a, int64(cnt), err
