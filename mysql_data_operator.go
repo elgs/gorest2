@@ -80,6 +80,7 @@ func (this *MySqlDataOperator) ListMap(tableId string, fields string, filter []s
 
 	sort = parseSort(sort)
 	where := parseFilters(filter)
+	//	fmt.Println(where)
 	for _, globalDataInterceptor := range GlobalDataInterceptorRegistry {
 		ctn, err := globalDataInterceptor.BeforeListMap(tableId, db, fields, context, &where, &sort, &group, start, limit)
 		if !ctn {
