@@ -302,7 +302,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		context["meta"] = meta
 		dataId := ""
 		if len(urlPathData) >= 3 {
-			dataId = urlPathData[1]
+			dataId = urlPathData[2]
 		}
 		decoder := json.NewDecoder(r.Body)
 		m := make(map[string]interface{})
