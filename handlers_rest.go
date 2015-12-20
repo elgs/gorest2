@@ -4,6 +4,7 @@ package gorest2
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/elgs/gosplitargs"
 	"net/http"
 	"strconv"
@@ -61,6 +62,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			filter := r.Form["filter"]
 			array := translateBoolParam(r.FormValue("array"), false)
 			query := translateBoolParam(r.FormValue("query"), false)
+			jwtToken := translateBoolParam(r.FormValue("jwt"), false)
 			start, err := strconv.ParseInt(s, 10, 0)
 			if err != nil {
 				start = 0
@@ -140,6 +142,27 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 					} else {
 						m["data"] = data
 						m["total"] = total
+					}
+				}
+			}
+			if jwtToken && !array {
+				if ts, ok := m["data"].([]map[string]string); ok {
+					if len(ts) == 1 {
+						t := ts[0]
+						token := jwt.New(jwt.SigningMethodHS256)
+						for k, v := range t {
+							token.Claims[k] = v
+						}
+						tokenString, err := token.SignedString([]byte(r.Header.Get("token")))
+						if err != nil {
+							w.WriteHeader(http.StatusInternalServerError)
+							w.Write([]byte(err.Error()))
+							return
+						}
+						jsonString := fmt.Sprintf(`{"token":"%v"}`, tokenString)
+						w.Header().Set("Content-Type", "application/json; charset=utf-8")
+						fmt.Fprint(w, jsonString)
+						return
 					}
 				}
 			}
