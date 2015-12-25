@@ -3,25 +3,44 @@ package gorest2
 import (
 	"database/sql"
 	"net/http"
+	"sort"
 	"strings"
 )
 
-var DataInterceptorRegistry = map[string]DataInterceptor{}
-var GlobalDataInterceptorRegistry = []DataInterceptor{}
-
-var GlobalHandlerInterceptorRegistry = []HandlerInterceptor{}
+var GlobalDataInterceptorRegistry = map[int]DataInterceptor{}
+var DataInterceptorRegistry = map[string]map[int]DataInterceptor{}
+var GlobalHandlerInterceptorRegistry = map[int]HandlerInterceptor{}
 var HandlerInterceptorRegistry = map[string]HandlerInterceptor{}
 
-func RegisterDataInterceptor(id string, dataInterceptor DataInterceptor) {
-	DataInterceptorRegistry[strings.ToUpper(id)] = dataInterceptor
+func RegisterDataInterceptor(id string, seq int, dataInterceptor DataInterceptor) {
+	id = strings.Replace(strings.ToUpper(id), "`", "", -1)
+	if DataInterceptorRegistry[id] == nil {
+		DataInterceptorRegistry[id] = make(map[int]DataInterceptor)
+	}
+	DataInterceptorRegistry[id][seq] = dataInterceptor
 }
 
-func GetDataInterceptor(id string) DataInterceptor {
-	return DataInterceptorRegistry[strings.ToUpper(strings.Replace(id, "`", "", -1))]
+func GetDataInterceptors(id string) (map[int]DataInterceptor, []int) {
+	interceptors := DataInterceptorRegistry[strings.ToUpper(strings.Replace(id, "`", "", -1))]
+	keys := make([]int, len(interceptors))
+	for k := range interceptors {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+	return interceptors, keys
 }
 
-func RegisterGlobalDataInterceptor(globalDataInterceptor DataInterceptor) {
-	GlobalDataInterceptorRegistry = append(GlobalDataInterceptorRegistry, globalDataInterceptor)
+func RegisterGlobalDataInterceptor(seq int, globalDataInterceptor DataInterceptor) {
+	GlobalDataInterceptorRegistry[seq] = globalDataInterceptor
+}
+
+func GetGlobalDataInterceptors() (map[int]DataInterceptor, []int) {
+	keys := make([]int, len(GlobalDataInterceptorRegistry))
+	for k := range GlobalDataInterceptorRegistry {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+	return GlobalDataInterceptorRegistry, keys
 }
 
 type DataInterceptor interface {
