@@ -22,7 +22,7 @@ func RegisterDataInterceptor(id string, seq int, dataInterceptor DataInterceptor
 
 func GetDataInterceptors(id string) (map[int]DataInterceptor, []int) {
 	interceptors := DataInterceptorRegistry[strings.ToUpper(strings.Replace(id, "`", "", -1))]
-	keys := make([]int, len(interceptors))
+	keys := make([]int, 0)
 	for k := range interceptors {
 		keys = append(keys, k)
 	}
@@ -35,7 +35,7 @@ func RegisterGlobalDataInterceptor(seq int, globalDataInterceptor DataIntercepto
 }
 
 func GetGlobalDataInterceptors() (map[int]DataInterceptor, []int) {
-	keys := make([]int, len(GlobalDataInterceptorRegistry))
+	keys := make([]int, 0)
 	for k := range GlobalDataInterceptorRegistry {
 		keys = append(keys, k)
 	}

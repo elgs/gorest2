@@ -647,7 +647,6 @@ func (this *MySqlDataOperator) Delete(tableId string, id string, context map[str
 			return -1, err
 		}
 	}
-
 	for _, k := range sortedKeys {
 		dataInterceptor := dataInterceptors[k]
 		if dataInterceptor != nil {
