@@ -150,10 +150,20 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 					if len(ts) == 1 {
 						t := ts[0]
 						token := jwt.New(jwt.SigningMethodHS256)
+						password := ""
 						for k, v := range t {
+							if strings.ToUpper(k) == "PASSWORD" {
+								password = v
+								continue
+							}
 							token.Claims[k] = v
 						}
-						tokenString, err := token.SignedString([]byte(r.Header.Get("token")))
+						if password == "" {
+							w.WriteHeader(http.StatusInternalServerError)
+							w.Write([]byte("Password not found."))
+							return
+						}
+						tokenString, err := token.SignedString([]byte(password))
 						if err != nil {
 							w.WriteHeader(http.StatusInternalServerError)
 							w.Write([]byte(err.Error()))
