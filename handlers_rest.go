@@ -220,7 +220,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 						}
 						jsonString := fmt.Sprintf(`{"token":"%v"}`, tokenString)
 						userKey := strings.Join([]string{"user", projectId, userId}, ":")
-						err = RedisMaster.HMSet(userKey, "authToken", jsonString).Err()
+						err = RedisMaster.HMSet(userKey, "authToken", tokenString).Err()
 						if err != nil {
 							http.Error(w, err.Error(), http.StatusInternalServerError)
 							return
