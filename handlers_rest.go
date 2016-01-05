@@ -4,12 +4,18 @@ package gorest2
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/dvsekhvalnov/jose2go"
+	"github.com/elgs/gojq"
 	"github.com/elgs/gosplitargs"
+	"gopkg.in/redis.v3"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
+
+var RedisMaster *redis.Client
+var RedisLocal *redis.Client
 
 var translateBoolParam = func(field string, defaultValue bool) bool {
 	if field == "1" {
@@ -26,6 +32,43 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	context["token"] = r.Header.Get("token")
 
 	projectId := r.Header.Get("app_id")
+	authorization := r.Header.Get("Authorization")
+	if authorization != "" {
+		authTokenArray := strings.SplitN(authorization, " ", 2)
+		authToken := authTokenArray[len(authTokenArray)-1]
+
+		payload, _, err := jose.Decode(authToken, []byte{})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		jq, err := gojq.NewStringQuery(payload)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		appId, err := jq.Query("app_id")
+		if err == nil && appId != nil && projectId == "" {
+			projectId, _ = appId.(string)
+		}
+
+		userId, err := jq.Query("id")
+		if err == nil && userId != nil {
+			context["user_id"] = userId
+		}
+
+		email, err := jq.Query("email")
+		if err == nil && email != nil {
+			context["email"] = email
+		}
+
+		userKey := fmt.Sprint("user:", appId, ":", userId)
+		if authToken != RedisLocal.HGet(userKey, "authToken").Val() {
+			http.Error(w, "Authentication failed.", http.StatusInternalServerError)
+			return
+		}
+	}
+
 	if projectId == "" {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		fmt.Fprint(w, `{"err":"Invalid project."}`)
@@ -149,8 +192,8 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				if ts, ok := m["data"].([]map[string]string); ok {
 					if len(ts) == 1 {
 						t := ts[0]
-						token := jwt.New(jwt.SigningMethodHS256)
-						password := ""
+						userId := ""
+						payload := make(map[string]interface{})
 						for k, v := range t {
 							uk := strings.ToUpper(k)
 							if uk == "CREATE_TIME" || uk == "CREATETIME" ||
@@ -161,26 +204,27 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 								uk == "UPDATER_CODE" || uk == "UPDATERCODE" {
 								continue
 							}
-							if uk == "PASSWORD" {
-								password = v
-								continue
+							if uk == "ID" {
+								userId = v
 							}
-							token.Claims[k] = v
+							payload[k] = v
 						}
-						if password == "" {
-							w.WriteHeader(http.StatusInternalServerError)
-							w.Write([]byte("Password not found."))
-							return
-						}
-						token.Claims["app_id"] = projectId
-						fmt.Println(password)
-						tokenString, err := token.SignedString([]byte(password))
+						payload["app_id"] = projectId
+						payload["exp"] = time.Now().Add(time.Hour * 72).Unix()
+
+						payloadBytes, err := json.Marshal(&payload)
+						tokenString, err := jose.Sign(string(payloadBytes), jose.HS256, []byte{})
 						if err != nil {
-							w.WriteHeader(http.StatusInternalServerError)
-							w.Write([]byte(err.Error()))
+							http.Error(w, err.Error(), http.StatusInternalServerError)
 							return
 						}
 						jsonString := fmt.Sprintf(`{"token":"%v"}`, tokenString)
+						userKey := strings.Join([]string{"user", projectId, userId}, ":")
+						err = RedisMaster.HMSet(userKey, "authToken", jsonString).Err()
+						if err != nil {
+							http.Error(w, err.Error(), http.StatusInternalServerError)
+							return
+						}
 						w.Header().Set("Content-Type", "application/json; charset=utf-8")
 						fmt.Fprint(w, jsonString)
 						return
