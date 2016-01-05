@@ -152,7 +152,16 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 						token := jwt.New(jwt.SigningMethodHS256)
 						password := ""
 						for k, v := range t {
-							if strings.ToUpper(k) == "PASSWORD" {
+							uk := strings.ToUpper(k)
+							if uk == "CREATE_TIME" || uk == "CREATETIME" ||
+								uk == "CREATOR_ID" || uk == "CREATORID" ||
+								uk == "CREATOR_CODE" || uk == "CREATORCODE" ||
+								uk == "UPDATE_TIME" || uk == "UPDATETIME" ||
+								uk == "UPDATER_ID" || uk == "UPDATERID" ||
+								uk == "UPDATER_CODE" || uk == "UPDATERCODE" {
+								continue
+							}
+							if uk == "PASSWORD" {
 								password = v
 								continue
 							}
@@ -163,6 +172,8 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 							w.Write([]byte("Password not found."))
 							return
 						}
+						token.Claims["app_id"] = projectId
+						fmt.Println(password)
 						tokenString, err := token.SignedString([]byte(password))
 						if err != nil {
 							w.WriteHeader(http.StatusInternalServerError)
