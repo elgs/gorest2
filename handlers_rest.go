@@ -274,6 +274,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			p := r.FormValue("params")
 			qp := r.FormValue("query_params")
 			params, err := gosplitargs.SplitArgs(p, ",", false)
+
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -286,7 +287,6 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-
 			data, err := dbo.Exec(tableId, parameters, queryParams, context)
 			m = map[string]interface{}{
 				"data": data,
