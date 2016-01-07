@@ -121,8 +121,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			}
 			params, err := gosplitargs.SplitArgs(p, ",", false)
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			parameters := make([]interface{}, len(params))
@@ -132,8 +131,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 
 			queryParams, err := gosplitargs.SplitArgs(qp, ",", false)
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			var data interface{}
@@ -145,8 +143,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				if query {
 					headers, dataArray, err = dbo.QueryArray(tableId, parameters, queryParams, context)
 					if err != nil {
-						w.WriteHeader(http.StatusInternalServerError)
-						w.Write([]byte(err.Error()))
+						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return
 					} else {
 						m["headers"] = headers
@@ -156,8 +153,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				} else {
 					headers, dataArray, total, err = dbo.ListArray(tableId, fields, filter, sort, group, start, limit, context)
 					if err != nil {
-						w.WriteHeader(http.StatusInternalServerError)
-						w.Write([]byte(err.Error()))
+						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return
 					} else {
 						m["headers"] = headers
@@ -169,9 +165,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				if query {
 					data, err = dbo.QueryMap(tableId, parameters, queryParams, context)
 					if err != nil {
-						fmt.Println(err.Error())
-						w.WriteHeader(http.StatusInternalServerError)
-						fmt.Fprint(w, err)
+						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return
 					} else {
 						m["data"] = data
@@ -179,8 +173,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				} else {
 					data, total, err = dbo.ListMap(tableId, fields, filter, sort, group, start, limit, context)
 					if err != nil {
-						w.WriteHeader(http.StatusInternalServerError)
-						w.Write([]byte(err.Error()))
+						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return
 					} else {
 						m["data"] = data
@@ -252,8 +245,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				"data": data,
 			}
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			jsonData, _ := json.Marshal(m)
@@ -283,8 +275,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			qp := r.FormValue("query_params")
 			params, err := gosplitargs.SplitArgs(p, ",", false)
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			for _, v := range params {
@@ -292,8 +283,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			}
 			queryParams, err := gosplitargs.SplitArgs(qp, ",", false)
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 
@@ -302,16 +292,14 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				"data": data,
 			}
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 		} else {
 			decoder := json.NewDecoder(r.Body)
 			err := decoder.Decode(&m)
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			mUpper := make(map[string]interface{})
@@ -325,16 +313,13 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				"data": data,
 			}
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 		}
 		jsonData, err := json.Marshal(m)
 		if err != nil {
-			fmt.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		jsonString := string(jsonData)
