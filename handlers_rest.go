@@ -16,6 +16,8 @@ import (
 
 var RedisMaster *redis.Client
 var RedisLocal *redis.Client
+var RequestWrites = map[string]int{}
+var RequestReads = map[string]int{}
 
 var translateBoolParam = func(field string, defaultValue bool) bool {
 	if field == "1" {
@@ -75,6 +77,15 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	context["app_id"] = projectId
+
+	if projectId != "default" {
+		if r.Method == "GET" {
+			RequestReads[projectId] += 1
+		} else {
+			RequestWrites[projectId] += 1
+		}
+	}
+
 	dbo := GetDbo(projectId)
 	if dbo == nil {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
