@@ -4,14 +4,15 @@ package gorest2
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dvsekhvalnov/jose2go"
-	"github.com/elgs/gojq"
-	"github.com/elgs/gosplitargs"
-	"gopkg.in/redis.v3"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/dvsekhvalnov/jose2go"
+	"github.com/elgs/gojq"
+	"github.com/elgs/gosplitargs"
+	"gopkg.in/redis.v3"
 )
 
 var RedisMaster *redis.Client
@@ -93,8 +94,11 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientIp := strings.Split(r.RemoteAddr, ":")[0]
-	context["client_ip"] = clientIp
+	fmt.Println(r.RemoteAddr)
+	sepIndex := strings.LastIndex(r.RemoteAddr, ":")
+	clientIp := r.RemoteAddr[0:sepIndex]
+	context["client_ip"] = strings.Replace(strings.Replace(clientIp, "[", "", -1), "]", "", -1)
+	fmt.Println(context["client_ip"])
 
 	urlPath := r.URL.Path
 	urlPathData := strings.Split(urlPath[1:], "/")
