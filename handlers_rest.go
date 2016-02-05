@@ -94,11 +94,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(r.RemoteAddr)
 	sepIndex := strings.LastIndex(r.RemoteAddr, ":")
 	clientIp := r.RemoteAddr[0:sepIndex]
 	context["client_ip"] = strings.Replace(strings.Replace(clientIp, "[", "", -1), "]", "", -1)
-	fmt.Println(context["client_ip"])
 
 	urlPath := r.URL.Path
 	urlPathData := strings.Split(urlPath[1:], "/")
