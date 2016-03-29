@@ -80,22 +80,22 @@ func (this *DefaultDataInterceptor) BeforeLoad(resourceId string, db *sql.DB, fi
 func (this *DefaultDataInterceptor) AfterLoad(resourceId string, db *sql.DB, fields string, context map[string]interface{}, data map[string]string) error {
 	return nil
 }
-func (this *DefaultDataInterceptor) BeforeCreate(resourceId string, db *sql.DB, context []map[string]interface{}, data map[string]interface{}) (bool, error) {
+func (this *DefaultDataInterceptor) BeforeCreate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) (bool, error) {
 	return true, nil
 }
-func (this *DefaultDataInterceptor) AfterCreate(resourceId string, db *sql.DB, context []map[string]interface{}, data map[string]interface{}) error {
+func (this *DefaultDataInterceptor) AfterCreate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) error {
 	return nil
 }
-func (this *DefaultDataInterceptor) BeforeUpdate(resourceId string, db *sql.DB, context []map[string]interface{}, data map[string]interface{}) (bool, error) {
+func (this *DefaultDataInterceptor) BeforeUpdate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) (bool, error) {
 	return true, nil
 }
-func (this *DefaultDataInterceptor) AfterUpdate(resourceId string, db *sql.DB, context []map[string]interface{}, data map[string]interface{}) error {
+func (this *DefaultDataInterceptor) AfterUpdate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) error {
 	return nil
 }
-func (this *DefaultDataInterceptor) BeforeDuplicate(resourceId string, db *sql.DB, context []map[string]interface{}, id string) (bool, error) {
+func (this *DefaultDataInterceptor) BeforeDuplicate(resourceId string, db *sql.DB, context map[string]interface{}, id []string) (bool, error) {
 	return true, nil
 }
-func (this *DefaultDataInterceptor) AfterDuplicate(resourceId string, db *sql.DB, context []map[string]interface{}, oldId string, newId string) error {
+func (this *DefaultDataInterceptor) AfterDuplicate(resourceId string, db *sql.DB, context map[string]interface{}, oldId []string, newId []string) error {
 	return nil
 }
 func (this *DefaultDataInterceptor) BeforeDelete(resourceId string, db *sql.DB, context map[string]interface{}, id []string) (bool, error) {
