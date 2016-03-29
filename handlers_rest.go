@@ -276,13 +276,15 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		context["meta"] = meta
 
 		execValues := r.URL.Query()["exec"]
-		exec := false
+		exec := 0
 		if execValues != nil && execValues[0] == "1" {
-			exec = true
+			exec = 1
+		} else if execValues != nil && execValues[0] == "2" {
+			exec = 2
 		}
 
 		m := make(map[string]interface{})
-		if exec {
+		if exec == 1 {
 			parameters := make([]interface{}, 0, 10)
 			p := r.FormValue("params")
 			qp := r.FormValue("query_params")
@@ -300,7 +302,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			data, err := dbo.Exec(tableId, parameters, queryParams, context)
+			data, err := dbo.Exec(tableId, [][]interface{}{parameters}, queryParams, context)
 			m = map[string]interface{}{
 				"data": data,
 			}
@@ -308,6 +310,8 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+		} else if exec == 2 {
+
 		} else {
 			decoder := json.NewDecoder(r.Body)
 			err := decoder.Decode(&m)
@@ -321,7 +325,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 					mUpper[strings.ToUpper(k)] = v
 				}
 			}
-			data, err := dbo.Create(tableId, mUpper, context)
+			data, err := dbo.Create(tableId, []map[string]interface{}{mUpper}, context)
 			m = map[string]interface{}{
 				"data": data,
 			}
@@ -341,7 +345,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	case "COPY":
 		// Duplicate a new record.
 		dataId := urlPathData[2]
-		data, err := dbo.Duplicate(tableId, dataId, context)
+		data, err := dbo.Duplicate(tableId, []string{dataId}, context)
 
 		m := map[string]interface{}{
 			"data": data,
@@ -386,7 +390,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		if dataId != "" {
 			mUpper["ID"] = dataId
 		}
-		data, err := dbo.Update(tableId, mUpper, context)
+		data, err := dbo.Update(tableId, []map[string]interface{}{mUpper}, context)
 		m = map[string]interface{}{
 			"data": data,
 		}
@@ -410,7 +414,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		//		}
 		//		context["load"] = load
 
-		data, err := dbo.Delete(tableId, dataId, context)
+		data, err := dbo.Delete(tableId, []string{dataId}, context)
 
 		m := map[string]interface{}{
 			"data": data,
