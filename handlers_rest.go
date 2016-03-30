@@ -367,9 +367,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			postDataArray := []interface{}{}
 			switch v := postData.(type) {
 			case []interface{}:
+				inputMode = 2
 				postDataArray = v
 			case map[string]interface{}:
-				inputMode = 2
 				postDataArray = append(postDataArray, v)
 			default:
 				http.Error(w, "Error parsing post data.", http.StatusInternalServerError)
@@ -460,37 +460,59 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			meta = false
 		}
 		context["meta"] = meta
+
 		dataId := ""
-		if len(urlPathData) >= 3 {
-			dataId = urlPathData[2]
-		}
+		var postData interface{}
 		decoder := json.NewDecoder(r.Body)
-		m := make(map[string]interface{})
-		err := decoder.Decode(&m)
+		err := decoder.Decode(&postData)
 		if err != nil {
-			m["err"] = err.Error()
-			jsonData, _ := json.Marshal(m)
-			jsonString := string(jsonData)
-			fmt.Fprint(w, jsonString)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		mUpper := make(map[string]interface{})
-		for k, v := range m {
-			if !strings.HasPrefix(k, "_") {
-				mUpper[strings.ToUpper(k)] = v
+
+		inputMode := 1
+		postDataArray := []interface{}{}
+		switch v := postData.(type) {
+		case []interface{}:
+			inputMode = 2
+			postDataArray = v
+		case map[string]interface{}:
+			if len(urlPathData) >= 3 {
+				dataId = urlPathData[2]
+			}
+			postDataArray = append(postDataArray, v)
+		default:
+			http.Error(w, "Error parsing post data.", http.StatusInternalServerError)
+			return
+		}
+
+		upperCasePostDataArray := []map[string]interface{}{}
+		for _, m := range postDataArray {
+			mUpper := map[string]interface{}{}
+			if m1, ok := m.(map[string]interface{}); ok {
+				for k, v := range m1 {
+					if !strings.HasPrefix(k, "_") {
+						mUpper[strings.ToUpper(k)] = v
+					}
+				}
+				if inputMode == 1 && dataId != "" {
+					mUpper["ID"] = dataId
+				}
+				upperCasePostDataArray = append(upperCasePostDataArray, mUpper)
 			}
 		}
-		if dataId != "" {
-			mUpper["ID"] = dataId
-		}
-		data, err := dbo.Update(tableId, []map[string]interface{}{mUpper}, context)
-		m = map[string]interface{}{
-			"data": data,
+		data, err := dbo.Update(tableId, upperCasePostDataArray, context)
+		m := map[string]interface{}{}
+		if inputMode == 1 && data != nil && len(data) == 1 {
+			m["data"] = data[0]
+		} else {
+			m["data"] = data
 		}
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		jsonData, err := json.Marshal(m)
 		jsonString := string(jsonData)
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
