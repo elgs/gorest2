@@ -445,8 +445,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		jsonData, err := json.Marshal(m)
@@ -489,8 +488,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			"data": data,
 		}
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		jsonData, err := json.Marshal(m)
