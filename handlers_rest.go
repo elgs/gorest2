@@ -289,7 +289,6 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			p := r.FormValue("params")
 			qp := r.FormValue("query_params")
 			params, err := gosplitargs.SplitArgs(p, ",", false)
-
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -410,12 +409,41 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, jsonString)
 	case "COPY":
 		// Duplicate a new record.
-		dataId := urlPathData[2]
-		data, err := dbo.Duplicate(tableId, []string{dataId}, context)
+		dataIds := []string{}
+		if len(urlPathData) >= 3 {
+			dataIds = append(dataIds, urlPathData[2])
+		} else {
+			var postData interface{}
+			decoder := json.NewDecoder(r.Body)
+			err := decoder.Decode(&postData)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			postDataArray := []interface{}{}
+			switch v := postData.(type) {
+			case []interface{}:
+				postDataArray = v
+			default:
+				http.Error(w, "Error parsing post data.", http.StatusInternalServerError)
+				return
+			}
 
-		m := map[string]interface{}{
-			"data": data,
+			for _, postData := range postDataArray {
+				if dataId, ok := postData.(string); ok {
+					dataIds = append(dataIds, dataId)
+				}
+			}
 		}
+		data, err := dbo.Duplicate(tableId, dataIds, context)
+
+		m := map[string]interface{}{}
+		if data != nil && len(data) == 1 {
+			m["data"] = data[0]
+		} else {
+			m["data"] = data
+		}
+
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
