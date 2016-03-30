@@ -499,23 +499,43 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, jsonString)
 	case "DELETE":
 		// Remove the record.
-		dataId := urlPathData[2]
+		dataIds := []string{}
+		if len(urlPathData) >= 3 {
+			dataIds = append(dataIds, urlPathData[2])
+		} else {
+			var postData interface{}
+			decoder := json.NewDecoder(r.Body)
+			err := decoder.Decode(&postData)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			postDataArray := []interface{}{}
+			switch v := postData.(type) {
+			case []interface{}:
+				postDataArray = v
+			default:
+				http.Error(w, "Error parsing post data.", http.StatusInternalServerError)
+				return
+			}
 
-		//		load := false
-		//		l := r.FormValue("load")
-		//		if l == "1" {
-		//			load = true
-		//		}
-		//		context["load"] = load
-
-		data, err := dbo.Delete(tableId, []string{dataId}, context)
-
-		m := map[string]interface{}{
-			"data": data,
+			for _, postData := range postDataArray {
+				if dataId, ok := postData.(string); ok {
+					dataIds = append(dataIds, dataId)
+				}
+			}
 		}
+		data, err := dbo.Delete(tableId, dataIds, context)
+
+		m := map[string]interface{}{}
+		if data != nil && len(data) == 1 {
+			m["data"] = data[0]
+		} else {
+			m["data"] = data
+		}
+
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		jsonData, err := json.Marshal(m)
