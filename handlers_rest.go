@@ -317,7 +317,44 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else if exec == 2 {
+			qp := r.FormValue("query_params")
+			queryParams, err := gosplitargs.SplitArgs(qp, ",", false)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			var postData []interface{}
+			decoder := json.NewDecoder(r.Body)
+			err = decoder.Decode(&postData)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			parametersArray := [][]interface{}{}
+			for _, postData1 := range postData {
+				parameters := []interface{}{}
 
+				if m1, ok := postData1.(map[string]interface{}); ok {
+					for _, v := range m1 {
+						parameters = append(parameters, v)
+					}
+				}
+				parametersArray = append(parametersArray, parameters)
+			}
+			data, err := dbo.Exec(tableId, parametersArray, queryParams, context)
+			if data != nil && len(data) == 1 {
+				m = map[string]interface{}{
+					"data": data[0],
+				}
+			} else {
+				m = map[string]interface{}{
+					"data": data,
+				}
+			}
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 		} else {
 			var postData interface{}
 			decoder := json.NewDecoder(r.Body)
