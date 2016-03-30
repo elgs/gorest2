@@ -283,7 +283,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			exec = 2
 		}
 
-		m := make(map[string]interface{})
+		m := map[string]interface{}{}
 		if exec == 1 {
 			parameters := make([]interface{}, 0, 10)
 			p := r.FormValue("params")
@@ -303,8 +303,14 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			data, err := dbo.Exec(tableId, [][]interface{}{parameters}, queryParams, context)
-			m = map[string]interface{}{
-				"data": data,
+			if data != nil && len(data) == 1 {
+				m = map[string]interface{}{
+					"data": data[0],
+				}
+			} else {
+				m = map[string]interface{}{
+					"data": data,
+				}
 			}
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -313,21 +319,44 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		} else if exec == 2 {
 
 		} else {
+			var postData interface{}
 			decoder := json.NewDecoder(r.Body)
-			err := decoder.Decode(&m)
+			err := decoder.Decode(&postData)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			mUpper := make(map[string]interface{})
-			for k, v := range m {
-				if !strings.HasPrefix(k, "_") {
-					mUpper[strings.ToUpper(k)] = v
+
+			inputMode := 1
+			postDataArray := []interface{}{}
+			switch v := postData.(type) {
+			case []interface{}:
+				postDataArray = v
+			case map[string]interface{}:
+				inputMode = 2
+				postDataArray = append(postDataArray, v)
+			default:
+				http.Error(w, "Error parsing post data.", http.StatusInternalServerError)
+				return
+			}
+
+			upperCasePostDataArray := []map[string]interface{}{}
+			for _, m := range postDataArray {
+				mUpper := map[string]interface{}{}
+				if m1, ok := m.(map[string]interface{}); ok {
+					for k, v := range m1 {
+						if !strings.HasPrefix(k, "_") {
+							mUpper[strings.ToUpper(k)] = v
+						}
+					}
+					upperCasePostDataArray = append(upperCasePostDataArray, mUpper)
 				}
 			}
-			data, err := dbo.Create(tableId, []map[string]interface{}{mUpper}, context)
-			m = map[string]interface{}{
-				"data": data,
+			data, err := dbo.Create(tableId, upperCasePostDataArray, context)
+			if inputMode == 1 && data != nil && len(data) == 1 {
+				m["data"] = data[0]
+			} else {
+				m["data"] = data
 			}
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
