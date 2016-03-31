@@ -363,7 +363,7 @@ func (this *MySqlDataOperator) Update(tableId string, data []map[string]interfac
 		dataLen := len(data1)
 		values := make([]interface{}, 0, dataLen)
 		var buffer bytes.Buffer
-		for k, v := range data {
+		for k, v := range data1 {
 			buffer.WriteString(fmt.Sprint(k, "=?,"))
 			values = append(values, v)
 		}
@@ -646,7 +646,7 @@ func (this *MySqlDataOperator) Delete(tableId string, id []string, context map[s
 		} else {
 			load, _ := context["load"].(bool)
 			if load {
-				data, err := gosqljson.QueryDbToMap(db, "upper", "SELECT * FROM "+tableId+" WHERE ID=?", id)
+				data, err := gosqljson.QueryDbToMap(db, "upper", "SELECT * FROM "+tableId+" WHERE ID=?", id1)
 				if err != nil {
 					fmt.Println(err)
 					return nil, err
@@ -659,7 +659,7 @@ func (this *MySqlDataOperator) Delete(tableId string, id []string, context map[s
 			}
 
 			// Delete the record
-			rowsAffected, err = gosqljson.ExecDb(db, fmt.Sprint("DELETE FROM ", tableId, " WHERE ID=?"), id)
+			rowsAffected, err = gosqljson.ExecDb(db, fmt.Sprint("DELETE FROM ", tableId, " WHERE ID=?"), id1)
 			if err != nil {
 				fmt.Println(err)
 				return nil, err
