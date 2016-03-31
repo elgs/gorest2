@@ -331,7 +331,11 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else if exec == 2 {
-			qp := r.FormValue("query_params")
+			qp := ""
+			qpArray := r.URL.Query()["query_params"]
+			if qpArray != nil && len(qpArray) > 0 {
+				qp = qpArray[0]
+			}
 			queryParams, err := gosplitargs.SplitArgs(qp, ",", false)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -345,10 +349,11 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			parametersArray := [][]interface{}{}
+
 			for _, postData1 := range postData {
 				parameters := []interface{}{}
 
-				if m1, ok := postData1.(map[string]interface{}); ok {
+				if m1, ok := postData1.([]interface{}); ok {
 					for _, v := range m1 {
 						parameters = append(parameters, v)
 					}
