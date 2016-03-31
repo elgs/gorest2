@@ -32,10 +32,13 @@ var translateBoolParam = func(field string, defaultValue bool) bool {
 
 var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	context := make(map[string]interface{})
-	context["token"] = r.Header.Get("token")
 
 	projectId := r.Header.Get("app_id")
+	token := r.Header.Get("token")
 	authorization := r.Header.Get("Authorization")
+
+	context["token"] = token
+
 	if authorization != "" {
 		authTokenArray := strings.SplitN(authorization, " ", 2)
 		authToken := authTokenArray[len(authTokenArray)-1]
@@ -70,6 +73,18 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Authentication failed.", http.StatusInternalServerError)
 			return
 		}
+	} else {
+		tokenKey := fmt.Sprint("token:", projectId, ":", token)
+		tokenMap, err := RedisLocal.HGetAllMap(tokenKey).Result()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		userId := tokenMap["token_user_id"]
+		email := tokenMap["token_user_code"]
+
+		context["user_id"] = userId
+		context["email"] = email
 	}
 
 	if projectId == "" {
