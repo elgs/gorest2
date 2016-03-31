@@ -425,7 +425,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	case "COPY":
 		// Duplicate a new record.
 		dataIds := []string{}
-		if len(urlPathData) >= 3 {
+		if len(urlPathData) >= 3 && len(urlPathData[2]) > 0 {
 			dataIds = append(dataIds, urlPathData[2])
 		} else {
 			var postData interface{}
@@ -492,7 +492,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			inputMode = 2
 			postDataArray = v
 		case map[string]interface{}:
-			if len(urlPathData) >= 3 {
+			if len(urlPathData) >= 3 && len(urlPathData[2]) > 0 {
 				dataId = urlPathData[2]
 			}
 			postDataArray = append(postDataArray, v)
@@ -535,7 +535,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	case "DELETE":
 		// Remove the record.
 		dataIds := []string{}
-		if len(urlPathData) >= 3 {
+		if len(urlPathData) >= 3 && len(urlPathData[2]) > 0 {
 			dataIds = append(dataIds, urlPathData[2])
 		} else {
 			var postData interface{}
