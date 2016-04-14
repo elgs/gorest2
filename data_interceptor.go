@@ -64,6 +64,9 @@ type DataInterceptor interface {
 	AfterQueryArray(resourceId string, script string, params *[]interface{}, db *sql.DB, context map[string]interface{}, headers *[]string, data *[][]string) error
 	BeforeExec(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}) (bool, error)
 	AfterExec(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}, rowsAffectedArray [][]int64) error
+
+	BeforeExecX(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}) (bool, error)
+	AfterExecX(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}, results []interface{}) error
 }
 
 type HandlerInterceptor interface {
@@ -132,6 +135,13 @@ func (this *DefaultDataInterceptor) BeforeExec(resourceId string, scripts string
 	return true, nil
 }
 func (this *DefaultDataInterceptor) AfterExec(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}, rowsAffectedArray [][]int64) error {
+	return nil
+}
+
+func BeforeExecX(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}) (bool, error) {
+	return true, nil
+}
+func AfterExecX(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}, results []interface{}) error {
 	return nil
 }
 
