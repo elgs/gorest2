@@ -138,10 +138,10 @@ func (this *DefaultDataInterceptor) AfterExec(resourceId string, scripts string,
 	return nil
 }
 
-func BeforeExecX(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}) (bool, error) {
+func (this *DefaultDataInterceptor) BeforeExecX(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}) (bool, error) {
 	return true, nil
 }
-func AfterExecX(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}, results []interface{}) error {
+func (this *DefaultDataInterceptor) AfterExecX(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}, results []interface{}) error {
 	return nil
 }
 
