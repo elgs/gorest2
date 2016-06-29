@@ -64,9 +64,6 @@ type DataInterceptor interface {
 	AfterQueryArray(resourceId string, script string, params *[]interface{}, db *sql.DB, context map[string]interface{}, headers *[]string, data *[][]string) error
 	BeforeExec(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}) (bool, error)
 	AfterExec(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}, rowsAffectedArray [][]int64) error
-
-	BeforeExecX(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}) (bool, error)
-	AfterExecX(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}, results []interface{}) error
 }
 
 type HandlerInterceptor interface {
@@ -119,6 +116,7 @@ func (this *DefaultDataInterceptor) BeforeListArray(resourceId string, db *sql.D
 func (this *DefaultDataInterceptor) AfterListArray(resourceId string, db *sql.DB, fields string, context map[string]interface{}, headers *[]string, data *[][]string, total int64) error {
 	return nil
 }
+
 func (this *DefaultDataInterceptor) BeforeQueryMap(resourceId string, script string, params *[]interface{}, db *sql.DB, context map[string]interface{}) (bool, error) {
 	return true, nil
 }
@@ -135,13 +133,6 @@ func (this *DefaultDataInterceptor) BeforeExec(resourceId string, scripts string
 	return true, nil
 }
 func (this *DefaultDataInterceptor) AfterExec(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}, rowsAffectedArray [][]int64) error {
-	return nil
-}
-
-func (this *DefaultDataInterceptor) BeforeExecX(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}) (bool, error) {
-	return true, nil
-}
-func (this *DefaultDataInterceptor) AfterExecX(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}, results []interface{}) error {
 	return nil
 }
 

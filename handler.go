@@ -17,6 +17,4 @@ func GetHandler(id string) func(w http.ResponseWriter, r *http.Request) {
 
 var DboRegistry = make(map[string]DataOperator)
 
-var GetDbo = func(id string) DataOperator {
-	return DboRegistry[id]
-}
+var GetDbo func(id string) (DataOperator, error)

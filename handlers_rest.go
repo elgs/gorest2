@@ -102,7 +102,12 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	dbo := GetDbo(projectId)
+	dbo, err := GetDbo(projectId)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		fmt.Fprint(w, fmt.Sprintf(`{"err":"%v"}`, err))
+		return
+	}
 	if dbo == nil {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		fmt.Fprint(w, `{"err":"Invalid project."}`)
@@ -158,6 +163,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			}
 
 			queryParams, err := gosplitargs.SplitArgs(qp, ",", false)
+			_ = queryParams
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -312,6 +318,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				parameters = append(parameters, v)
 			}
 			queryParams, err := gosplitargs.SplitArgs(qp, ",", false)
+			_ = queryParams
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -337,6 +344,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				qp = qpArray[0]
 			}
 			queryParams, err := gosplitargs.SplitArgs(qp, ",", false)
+			_ = queryParams
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return

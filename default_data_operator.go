@@ -32,6 +32,7 @@ func (this *DefaultDataOperator) Delete(resourceId string, id string, context ma
 func (this *DefaultDataOperator) MetaData(resourceId string) ([]map[string]string, error) {
 	return nil, nil
 }
+
 func (this *DefaultDataOperator) QueryMap(resourceId string, params []interface{}, context map[string]interface{}) ([]map[string]string, error) {
 	return nil, nil
 }
@@ -40,9 +41,6 @@ func (this *DefaultDataOperator) QueryArray(resourceId string, params []interfac
 }
 func (this *DefaultDataOperator) Exec(resourceId string, params []interface{}, context map[string]interface{}) (int64, error) {
 	return -1, nil
-}
-func (this *DefaultDataOperator) ExecX(resourceId string, params [][]interface{}, queryParams []string, context map[string]interface{}) ([]interface{}, error) {
-	return nil, nil
 }
 
 func (this *DefaultDataOperator) GetConn() (*sql.DB, error) {

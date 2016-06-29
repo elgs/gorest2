@@ -15,6 +15,5 @@ type DataOperator interface {
 	QueryMap(resourceId string, params []interface{}, queryParams []string, context map[string]interface{}) ([]map[string]string, error)
 	QueryArray(resourceId string, params []interface{}, queryParams []string, context map[string]interface{}) ([]string, [][]string, error)
 	Exec(resourceId string, params [][]interface{}, queryParams []string, context map[string]interface{}) ([][]int64, error)
-	ExecX(resourceId string, params [][]interface{}, queryParams []string, context map[string]interface{}) ([]interface{}, error)
 	GetConn() (*sql.DB, error)
 }
