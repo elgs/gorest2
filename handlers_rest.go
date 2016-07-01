@@ -7,16 +7,12 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
+	//	"time"
 
-	"github.com/dvsekhvalnov/jose2go"
-	"github.com/elgs/gojq"
+	//	"github.com/dvsekhvalnov/jose2go"
 	"github.com/elgs/gosplitargs"
-	"gopkg.in/redis.v3"
 )
 
-var RedisMaster *redis.Client
-var RedisLocal *redis.Client
 var RequestWrites = map[string]int{}
 var RequestReads = map[string]int{}
 
@@ -33,76 +29,25 @@ var translateBoolParam = func(field string, defaultValue bool) bool {
 var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	context := make(map[string]interface{})
 
-	projectId := r.Header.Get("app_id")
+	appId := r.Header.Get("app")
 	token := r.Header.Get("token")
-	authorization := r.Header.Get("Authorization")
 
 	context["token"] = token
 
-	if authorization != "" {
-		authTokenArray := strings.SplitN(authorization, " ", 2)
-		authToken := authTokenArray[len(authTokenArray)-1]
-
-		payload, _, err := jose.Decode(authToken, []byte{})
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		jq, err := gojq.NewStringQuery(payload)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		appId, err := jq.Query("app_id")
-		if err == nil && appId != nil && projectId == "" {
-			projectId, _ = appId.(string)
-		}
-
-		userId, err := jq.Query("id")
-		if err == nil && userId != nil {
-			context["user_id"] = userId
-		}
-
-		email, err := jq.Query("email")
-		if err == nil && email != nil {
-			context["email"] = email
-		}
-
-		userKey := fmt.Sprint("user:", appId, ":", userId)
-		if authToken != RedisLocal.HGet(userKey, "authToken").Val() {
-			http.Error(w, "Authentication failed.", http.StatusInternalServerError)
-			return
-		}
-	} else {
-		tokenKey := fmt.Sprint("token:", projectId, ":", token)
-		tokenMap, err := RedisLocal.HGetAllMap(tokenKey).Result()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		userId := tokenMap["token_user_id"]
-		email := tokenMap["token_user_code"]
-
-		context["user_id"] = userId
-		context["email"] = email
-	}
-
-	if projectId == "" {
+	if appId == "" {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		fmt.Fprint(w, `{"err":"Invalid project."}`)
+		fmt.Fprint(w, `{"err":"Invalid app."}`)
 		return
 	}
-	context["app_id"] = projectId
+	context["app_id"] = appId
 
-	if projectId != "default" {
-		if r.Method == "GET" {
-			RequestReads[projectId] += 1
-		} else {
-			RequestWrites[projectId] += 1
-		}
+	if r.Method == "GET" {
+		RequestReads[appId] += 1
+	} else {
+		RequestWrites[appId] += 1
 	}
 
-	dbo, err := GetDbo(projectId)
+	dbo, err := GetDbo(appId)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		fmt.Fprint(w, fmt.Sprintf(`{"err":"%v"}`, err))
@@ -216,47 +161,47 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			if jwtToken && !array {
-				if ts, ok := m["data"].([]map[string]string); ok {
-					if len(ts) == 1 {
-						t := ts[0]
-						userId := ""
-						payload := make(map[string]interface{})
-						for k, v := range t {
-							uk := strings.ToUpper(k)
-							if uk == "CREATE_TIME" || uk == "CREATETIME" ||
-								uk == "CREATOR_ID" || uk == "CREATORID" ||
-								uk == "CREATOR_CODE" || uk == "CREATORCODE" ||
-								uk == "UPDATE_TIME" || uk == "UPDATETIME" ||
-								uk == "UPDATER_ID" || uk == "UPDATERID" ||
-								uk == "UPDATER_CODE" || uk == "UPDATERCODE" {
-								continue
-							}
-							if uk == "ID" {
-								userId = v
-							}
-							payload[k] = v
-						}
-						payload["app_id"] = projectId
-						payload["exp"] = time.Now().Add(time.Hour * 72).Unix()
+				//				if ts, ok := m["data"].([]map[string]string); ok {
+				//					if len(ts) == 1 {
+				//						t := ts[0]
+				//						userId := ""
+				//						payload := make(map[string]interface{})
+				//						for k, v := range t {
+				//							uk := strings.ToUpper(k)
+				//							if uk == "CREATE_TIME" || uk == "CREATETIME" ||
+				//								uk == "CREATOR_ID" || uk == "CREATORID" ||
+				//								uk == "CREATOR_CODE" || uk == "CREATORCODE" ||
+				//								uk == "UPDATE_TIME" || uk == "UPDATETIME" ||
+				//								uk == "UPDATER_ID" || uk == "UPDATERID" ||
+				//								uk == "UPDATER_CODE" || uk == "UPDATERCODE" {
+				//								continue
+				//							}
+				//							if uk == "ID" {
+				//								userId = v
+				//							}
+				//							payload[k] = v
+				//						}
+				//						payload["app_id"] = appId
+				//						payload["exp"] = time.Now().Add(time.Hour * 72).Unix()
 
-						payloadBytes, err := json.Marshal(&payload)
-						tokenString, err := jose.Sign(string(payloadBytes), jose.HS256, []byte{})
-						if err != nil {
-							http.Error(w, err.Error(), http.StatusInternalServerError)
-							return
-						}
-						jsonString := fmt.Sprintf(`{"token":"%v"}`, tokenString)
-						userKey := strings.Join([]string{"user", projectId, userId}, ":")
-						err = RedisMaster.HMSet(userKey, "authToken", tokenString).Err()
-						if err != nil {
-							http.Error(w, err.Error(), http.StatusInternalServerError)
-							return
-						}
-						w.Header().Set("Content-Type", "application/json; charset=utf-8")
-						fmt.Fprint(w, jsonString)
-						return
-					}
-				}
+				//						payloadBytes, err := json.Marshal(&payload)
+				//						tokenString, err := jose.Sign(string(payloadBytes), jose.HS256, []byte{})
+				//						if err != nil {
+				//							http.Error(w, err.Error(), http.StatusInternalServerError)
+				//							return
+				//						}
+				//						jsonString := fmt.Sprintf(`{"token":"%v"}`, tokenString)
+				//						userKey := strings.Join([]string{"user", appId, userId}, ":")
+				//						err = RedisMaster.HMSet(userKey, "authToken", tokenString).Err()
+				//						if err != nil {
+				//							http.Error(w, err.Error(), http.StatusInternalServerError)
+				//							return
+				//						}
+				//						w.Header().Set("Content-Type", "application/json; charset=utf-8")
+				//						fmt.Fprint(w, jsonString)
+				//						return
+				//					}
+				//				}
 			}
 			jsonData, err := json.Marshal(m)
 			jsonString := string(jsonData)
