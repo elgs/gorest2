@@ -8,6 +8,7 @@ import (
 )
 
 var GlobalDataInterceptorRegistry = map[int]DataInterceptor{}
+
 var DataInterceptorRegistry = map[string]map[int]DataInterceptor{}
 var GlobalHandlerInterceptorRegistry = []HandlerInterceptor{}
 var HandlerInterceptorRegistry = map[string]HandlerInterceptor{}

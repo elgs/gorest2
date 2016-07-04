@@ -39,7 +39,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, `{"err":"Invalid app."}`)
 		return
 	}
-	context["app_id"] = appId
+	context["app"] = appId
 
 	if r.Method == "GET" {
 		RequestReads[appId] += 1
