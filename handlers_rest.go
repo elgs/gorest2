@@ -39,7 +39,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, `{"err":"Invalid app."}`)
 		return
 	}
-	context["app"] = appId
+	context["app_id"] = appId
 
 	if r.Method == "GET" {
 		RequestReads[appId] += 1
@@ -234,12 +234,6 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		}
 	case "POST":
 		// Create the record.
-		metaValues := r.URL.Query()["meta"]
-		meta := true
-		if metaValues != nil && metaValues[0] == "0" {
-			meta = false
-		}
-		context["meta"] = meta
 
 		execValues := r.URL.Query()["exec"]
 		exec := 0
@@ -427,12 +421,6 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, jsonString)
 	case "PUT":
 		// Update an existing record.
-		metaValues := r.URL.Query()["meta"]
-		meta := true
-		if metaValues != nil && metaValues[0] == "0" {
-			meta = false
-		}
-		context["meta"] = meta
 
 		dataId := ""
 		var postData interface{}
