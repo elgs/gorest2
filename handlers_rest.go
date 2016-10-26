@@ -29,8 +29,8 @@ var translateBoolParam = func(field string, defaultValue bool) bool {
 var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	context := make(map[string]interface{})
 
-	appId := r.Header.Get("app")
 	token := r.Header.Get("token")
+	appId := token[:32]
 
 	context["token"] = token
 
