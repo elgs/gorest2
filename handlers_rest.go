@@ -168,7 +168,7 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				//						payload := make(map[string]interface{})
 				//						for k, v := range t {
 				//							uk := strings.ToUpper(k)
-				//							if uk == "CREATE_TIME" || uk == "CREATETIME" ||
+				//							if uk == "CREATED_TIME" || uk == "CREATETIME" ||
 				//								uk == "CREATOR_ID" || uk == "CREATORID" ||
 				//								uk == "CREATOR_CODE" || uk == "CREATORCODE" ||
 				//								uk == "UPDATE_TIME" || uk == "UPDATETIME" ||
@@ -245,9 +245,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 
 		m := map[string]interface{}{}
 		if exec == 1 {
-			parameters := make([]interface{}, 0, 10)
-			p := r.FormValue("params")
-			qp := r.FormValue("query_params")
+			parameters := []interface{}{}
+			p := r.FormValue("params")        // ?
+			qp := r.FormValue("query_params") // $
 			params, err := gosplitargs.SplitArgs(p, ",", false)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -257,12 +257,12 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				parameters = append(parameters, v)
 			}
 			queryParams, err := gosplitargs.SplitArgs(qp, ",", false)
-			_ = queryParams
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			data, err := dbo.Exec(tableId, [][]interface{}{parameters}, queryParams, context)
+			fmt.Println(data, err)
 			if data != nil && len(data) == 1 {
 				m = map[string]interface{}{
 					"data": data[0],
@@ -283,7 +283,6 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				qp = qpArray[0]
 			}
 			queryParams, err := gosplitargs.SplitArgs(qp, ",", false)
-			_ = queryParams
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
