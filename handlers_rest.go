@@ -262,7 +262,6 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			data, err := dbo.Exec(tableId, [][]interface{}{parameters}, queryParams, context)
-			fmt.Println(data, err)
 			if data != nil && len(data) == 1 {
 				m = map[string]interface{}{
 					"data": data[0],
