@@ -31,8 +31,12 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 
 	token := r.Header.Get("token")
 	appId := token[:32]
+	apiToken := token[:64]
+	jwtToken := token[64:]
 
-	context["token"] = token
+	fmt.Println(jwtToken)
+
+	context["token"] = apiToken
 
 	if appId == "" {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -83,7 +87,6 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			filter := r.Form["filter"]
 			array := translateBoolParam(r.FormValue("array"), false)
 			query := translateBoolParam(r.FormValue("query"), false)
-			jwtToken := translateBoolParam(r.FormValue("jwt"), false)
 			start, err := strconv.ParseInt(s, 10, 0)
 			if err != nil {
 				start = 0
@@ -160,49 +163,47 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
-			if jwtToken && !array {
-				//				if ts, ok := m["data"].([]map[string]string); ok {
-				//					if len(ts) == 1 {
-				//						t := ts[0]
-				//						userId := ""
-				//						payload := make(map[string]interface{})
-				//						for k, v := range t {
-				//							uk := strings.ToUpper(k)
-				//							if uk == "CREATED_TIME" || uk == "CREATETIME" ||
-				//								uk == "CREATOR_ID" || uk == "CREATORID" ||
-				//								uk == "CREATOR_CODE" || uk == "CREATORCODE" ||
-				//								uk == "UPDATE_TIME" || uk == "UPDATETIME" ||
-				//								uk == "UPDATER_ID" || uk == "UPDATERID" ||
-				//								uk == "UPDATER_CODE" || uk == "UPDATERCODE" {
-				//								continue
-				//							}
-				//							if uk == "ID" {
-				//								userId = v
-				//							}
-				//							payload[k] = v
-				//						}
-				//						payload["app_id"] = appId
-				//						payload["exp"] = time.Now().Add(time.Hour * 72).Unix()
+			//				if ts, ok := m["data"].([]map[string]string); ok {
+			//					if len(ts) == 1 {
+			//						t := ts[0]
+			//						userId := ""
+			//						payload := make(map[string]interface{})
+			//						for k, v := range t {
+			//							uk := strings.ToUpper(k)
+			//							if uk == "CREATED_TIME" || uk == "CREATETIME" ||
+			//								uk == "CREATOR_ID" || uk == "CREATORID" ||
+			//								uk == "CREATOR_CODE" || uk == "CREATORCODE" ||
+			//								uk == "UPDATE_TIME" || uk == "UPDATETIME" ||
+			//								uk == "UPDATER_ID" || uk == "UPDATERID" ||
+			//								uk == "UPDATER_CODE" || uk == "UPDATERCODE" {
+			//								continue
+			//							}
+			//							if uk == "ID" {
+			//								userId = v
+			//							}
+			//							payload[k] = v
+			//						}
+			//						payload["app_id"] = appId
+			//						payload["exp"] = time.Now().Add(time.Hour * 72).Unix()
 
-				//						payloadBytes, err := json.Marshal(&payload)
-				//						tokenString, err := jose.Sign(string(payloadBytes), jose.HS256, []byte{})
-				//						if err != nil {
-				//							http.Error(w, err.Error(), http.StatusInternalServerError)
-				//							return
-				//						}
-				//						jsonString := fmt.Sprintf(`{"token":"%v"}`, tokenString)
-				//						userKey := strings.Join([]string{"user", appId, userId}, ":")
-				//						err = RedisMaster.HMSet(userKey, "authToken", tokenString).Err()
-				//						if err != nil {
-				//							http.Error(w, err.Error(), http.StatusInternalServerError)
-				//							return
-				//						}
-				//						w.Header().Set("Content-Type", "application/json; charset=utf-8")
-				//						fmt.Fprint(w, jsonString)
-				//						return
-				//					}
-				//				}
-			}
+			//						payloadBytes, err := json.Marshal(&payload)
+			//						tokenString, err := jose.Sign(string(payloadBytes), jose.HS256, []byte{})
+			//						if err != nil {
+			//							http.Error(w, err.Error(), http.StatusInternalServerError)
+			//							return
+			//						}
+			//						jsonString := fmt.Sprintf(`{"token":"%v"}`, tokenString)
+			//						userKey := strings.Join([]string{"user", appId, userId}, ":")
+			//						err = RedisMaster.HMSet(userKey, "authToken", tokenString).Err()
+			//						if err != nil {
+			//							http.Error(w, err.Error(), http.StatusInternalServerError)
+			//							return
+			//						}
+			//						w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			//						fmt.Fprint(w, jsonString)
+			//						return
+			//					}
+			//				}
 			jsonData, err := json.Marshal(m)
 			jsonString := string(jsonData)
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
