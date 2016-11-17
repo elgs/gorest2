@@ -3,13 +3,16 @@ package gorest2
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 	//	"time"
 
 	//	"github.com/dvsekhvalnov/jose2go"
+	"github.com/elgs/gojq"
 	"github.com/elgs/gosplitargs"
 )
 
@@ -24,6 +27,89 @@ var translateBoolParam = func(field string, defaultValue bool) bool {
 	} else {
 		return defaultValue
 	}
+}
+
+var convertMapOfInterfacesToMapOfStrings = func(data map[string]interface{}) (map[string]string, error) {
+	if data == nil {
+		return nil, errors.New("Cannot convert nil.")
+	}
+	ret := map[string]string{}
+	for k, v := range data {
+		if v == nil {
+			return nil, errors.New("Data contains nil.")
+		}
+		ret[k] = v.(string)
+	}
+	return ret, nil
+}
+
+var parseExecParams = func(data string) (retQp map[string]string, retP [][]interface{}, retArray bool, err error) {
+	retQp = map[string]string{}
+	retP = [][]interface{}{}
+	retArray = true
+	parser, err := gojq.NewStringQuery(data)
+	if err != nil {
+		return
+	}
+	qp, errx := parser.Query("query_params")
+	if errx == nil {
+		switch v := qp.(type) {
+		case map[string]interface{}:
+			x, errx := convertMapOfInterfacesToMapOfStrings(v)
+			if errx != nil {
+				err = errx
+				return
+			}
+			retQp = x
+		case []interface{}:
+			for i, v := range v {
+				if v == nil {
+					err = errors.New("Data contains nil.")
+					return
+				}
+				retQp[fmt.Sprint("$", i)] = v.(string)
+			}
+		default:
+			err = errors.New("Cannot recognize data type")
+			return
+		}
+	}
+
+	p, errx := parser.Query("params")
+	if errx == nil {
+		if v, found := p.([]interface{}); found {
+			for _, v1 := range v {
+				if v1 == nil {
+					err = errors.New("Data contains nil.")
+					return
+				}
+				if v2, found := v1.([]interface{}); found {
+					// array
+					retP = append(retP, v2)
+				} else if v2, found := v1.(interface{}); found {
+					// item
+					if len(retP) == 0 {
+						retP = append(retP, []interface{}{})
+					}
+					retP[0] = append(retP[0], v2)
+				}
+			}
+		} else {
+			err = errors.New("Cannot recognize data type")
+			return
+		}
+	}
+
+	array, errx := parser.Query("array")
+	if errx == nil {
+		if v, found := array.(bool); found {
+			retArray = v
+		} else {
+			err = errors.New("Cannot recognize data type")
+			return
+		}
+	}
+	return
 }
 
 var RestFunc = func(w http.ResponseWriter, r *http.Request) {
@@ -86,7 +172,6 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			context["case"] = c
 			filter := r.Form["filter"]
 			array := translateBoolParam(r.FormValue("array"), false)
-			query := translateBoolParam(r.FormValue("query"), false)
 			start, err := strconv.ParseInt(s, 10, 0)
 			if err != nil {
 				start = 0
@@ -120,47 +205,23 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			var total int64 = -1
 			m := map[string]interface{}{}
 			if array {
-				var headers []string
-				var dataArray [][]string
-				if query {
-					headers, dataArray, err = dbo.QueryArray(tableId, parameters, queryParams, context)
-					if err != nil {
-						http.Error(w, err.Error(), http.StatusInternalServerError)
-						return
-					} else {
-						m["headers"] = headers
-						m["data"] = dataArray
-					}
-
+				headers, dataArray, total, err := dbo.ListArray(tableId, fields, filter, sort, group, start, limit, context)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
 				} else {
-					headers, dataArray, total, err = dbo.ListArray(tableId, fields, filter, sort, group, start, limit, context)
-					if err != nil {
-						http.Error(w, err.Error(), http.StatusInternalServerError)
-						return
-					} else {
-						m["headers"] = headers
-						m["data"] = dataArray
-						m["total"] = total
-					}
+					m["headers"] = headers
+					m["data"] = dataArray
+					m["total"] = total
 				}
 			} else {
-				if query {
-					data, err = dbo.QueryMap(tableId, parameters, queryParams, context)
-					if err != nil {
-						http.Error(w, err.Error(), http.StatusInternalServerError)
-						return
-					} else {
-						m["data"] = data
-					}
+				data, total, err = dbo.ListMap(tableId, fields, filter, sort, group, start, limit, context)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
 				} else {
-					data, total, err = dbo.ListMap(tableId, fields, filter, sort, group, start, limit, context)
-					if err != nil {
-						http.Error(w, err.Error(), http.StatusInternalServerError)
-						return
-					} else {
-						m["data"] = data
-						m["total"] = total
-					}
+					m["data"] = data
+					m["total"] = total
 				}
 			}
 			//				if ts, ok := m["data"].([]map[string]string); ok {
@@ -236,134 +297,84 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		// Create the record.
 
-		execValues := r.URL.Query()["exec"]
-		exec := 0
-		if execValues != nil && execValues[0] == "1" {
-			exec = 1
-		} else if execValues != nil && execValues[0] == "2" {
-			exec = 2
+		m := map[string]interface{}{}
+		var postData interface{}
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&postData)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
-		m := map[string]interface{}{}
-		if exec == 1 {
-			parameters := []interface{}{}
-			p := r.FormValue("params")        // ?
-			qp := r.FormValue("query_params") // $
-			params, err := gosplitargs.SplitArgs(p, ",", false)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			for _, v := range params {
-				parameters = append(parameters, v)
-			}
-			queryParams, err := gosplitargs.SplitArgs(qp, ",", false)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			data, err := dbo.Exec(tableId, [][]interface{}{parameters}, queryParams, context)
-			if data != nil && len(data) == 1 {
-				m = map[string]interface{}{
-					"data": data[0],
-				}
-			} else {
-				m = map[string]interface{}{
-					"data": data,
-				}
-			}
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-		} else if exec == 2 {
-			qp := ""
-			qpArray := r.URL.Query()["query_params"]
-			if qpArray != nil && len(qpArray) > 0 {
-				qp = qpArray[0]
-			}
-			queryParams, err := gosplitargs.SplitArgs(qp, ",", false)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			var postData []interface{}
-			decoder := json.NewDecoder(r.Body)
-			err = decoder.Decode(&postData)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			parametersArray := [][]interface{}{}
+		inputMode := 1
+		postDataArray := []interface{}{}
+		switch v := postData.(type) {
+		case []interface{}:
+			inputMode = 2
+			postDataArray = v
+		case map[string]interface{}:
+			postDataArray = append(postDataArray, v)
+		default:
+			http.Error(w, "Error parsing post data.", http.StatusInternalServerError)
+			return
+		}
 
-			for _, postData1 := range postData {
-				parameters := []interface{}{}
-
-				if m1, ok := postData1.([]interface{}); ok {
-					for _, v := range m1 {
-						parameters = append(parameters, v)
+		upperCasePostDataArray := []map[string]interface{}{}
+		for _, m := range postDataArray {
+			mUpper := map[string]interface{}{}
+			if m1, ok := m.(map[string]interface{}); ok {
+				for k, v := range m1 {
+					if !strings.HasPrefix(k, "_") {
+						mUpper[strings.ToUpper(k)] = v
 					}
 				}
-				parametersArray = append(parametersArray, parameters)
+				upperCasePostDataArray = append(upperCasePostDataArray, mUpper)
 			}
-			data, err := dbo.Exec(tableId, parametersArray, queryParams, context)
-			if data != nil && len(data) == 1 {
-				m = map[string]interface{}{
-					"data": data[0],
-				}
-			} else {
-				m = map[string]interface{}{
-					"data": data,
-				}
-			}
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
+		}
+		data, err := dbo.Create(tableId, upperCasePostDataArray, context)
+		if inputMode == 1 && data != nil && len(data) == 1 {
+			m["data"] = data[0]
 		} else {
-			var postData interface{}
-			decoder := json.NewDecoder(r.Body)
-			err := decoder.Decode(&postData)
+			m["data"] = data
+		}
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		jsonData, err := json.Marshal(m)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		jsonString := string(jsonData)
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		fmt.Fprint(w, jsonString)
+	case "PATCH":
+		m := map[string]interface{}{}
+		result, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		qp, p, array, err := parseExecParams(string(result))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if array {
+			data, err := dbo.ExecArray(tableId, p, qp, context)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-
-			inputMode := 1
-			postDataArray := []interface{}{}
-			switch v := postData.(type) {
-			case []interface{}:
-				inputMode = 2
-				postDataArray = v
-			case map[string]interface{}:
-				postDataArray = append(postDataArray, v)
-			default:
-				http.Error(w, "Error parsing post data.", http.StatusInternalServerError)
-				return
-			}
-
-			upperCasePostDataArray := []map[string]interface{}{}
-			for _, m := range postDataArray {
-				mUpper := map[string]interface{}{}
-				if m1, ok := m.(map[string]interface{}); ok {
-					for k, v := range m1 {
-						if !strings.HasPrefix(k, "_") {
-							mUpper[strings.ToUpper(k)] = v
-						}
-					}
-					upperCasePostDataArray = append(upperCasePostDataArray, mUpper)
-				}
-			}
-			data, err := dbo.Create(tableId, upperCasePostDataArray, context)
-			if inputMode == 1 && data != nil && len(data) == 1 {
-				m["data"] = data[0]
-			} else {
-				m["data"] = data
-			}
+			m["data"] = data
+		} else {
+			data, err := dbo.ExecMap(tableId, p, qp, context)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			m["data"] = data
 		}
 		jsonData, err := json.Marshal(m)
 		if err != nil {
