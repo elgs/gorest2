@@ -33,14 +33,8 @@ func (this *DefaultDataOperator) MetaData(resourceId string) ([]map[string]strin
 	return nil, nil
 }
 
-func (this *DefaultDataOperator) QueryMap(resourceId string, params []interface{}, context map[string]interface{}) ([]map[string]string, error) {
+func (this *DefaultDataOperator) Exec(resourceId string, params [][]interface{}, queryParams map[string]string, array bool, context map[string]interface{}) ([][]interface{}, error) {
 	return nil, nil
-}
-func (this *DefaultDataOperator) QueryArray(resourceId string, params []interface{}, context map[string]interface{}) ([]string, [][]string, error) {
-	return nil, nil, nil
-}
-func (this *DefaultDataOperator) Exec(resourceId string, params []interface{}, context map[string]interface{}) (int64, error) {
-	return -1, nil
 }
 
 func (this *DefaultDataOperator) GetConn() (*sql.DB, error) {

@@ -59,8 +59,8 @@ type DataInterceptor interface {
 	AfterListMap(resourceId string, db *sql.DB, fields string, context map[string]interface{}, data *[]map[string]string, total int64) error
 	BeforeListArray(resourceId string, db *sql.DB, fields string, context map[string]interface{}, filter *string, sort *string, group *string, start int64, limit int64) (bool, error)
 	AfterListArray(resourceId string, db *sql.DB, fields string, context map[string]interface{}, headers *[]string, data *[][]string, total int64) error
-	BeforeExec(resourceId string, script string, params *[]interface{}, queryParams []string, array bool, db *sql.DB, context map[string]interface{}) (bool, error)
-	AfterExec(resourceId string, script string, params *[]interface{}, queryParams []string, array bool, db *sql.DB, context map[string]interface{}, data *[][]interface{}) error
+	BeforeExec(resourceId string, script string, params *[][]interface{}, queryParams map[string]string, array bool, db *sql.DB, context map[string]interface{}) (bool, error)
+	AfterExec(resourceId string, script string, params *[][]interface{}, queryParams map[string]string, array bool, db *sql.DB, context map[string]interface{}, data *[][]interface{}) error
 }
 
 type HandlerInterceptor interface {
