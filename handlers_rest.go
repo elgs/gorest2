@@ -361,21 +361,12 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		if array {
-			data, err := dbo.ExecArray(tableId, p, qp, context)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			m["data"] = data
-		} else {
-			data, err := dbo.ExecMap(tableId, p, qp, context)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			m["data"] = data
+		data, err := dbo.Exec(tableId, p, qp, array, context)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
+		m["data"] = data
 		jsonData, err := json.Marshal(m)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

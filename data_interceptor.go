@@ -59,12 +59,8 @@ type DataInterceptor interface {
 	AfterListMap(resourceId string, db *sql.DB, fields string, context map[string]interface{}, data *[]map[string]string, total int64) error
 	BeforeListArray(resourceId string, db *sql.DB, fields string, context map[string]interface{}, filter *string, sort *string, group *string, start int64, limit int64) (bool, error)
 	AfterListArray(resourceId string, db *sql.DB, fields string, context map[string]interface{}, headers *[]string, data *[][]string, total int64) error
-	BeforeExecMap(resourceId string, script string, params *[]interface{}, queryParams []string, db *sql.DB, context map[string]interface{}) (bool, error)
-	AfterExecMap(resourceId string, script string, params *[]interface{}, queryParams []string, db *sql.DB, context map[string]interface{}, data *[][]map[string]string) error
-	BeforeExecArray(resourceId string, script string, params *[]interface{}, queryParams []string, db *sql.DB, context map[string]interface{}) (bool, error)
-	AfterExecArray(resourceId string, script string, params *[]interface{}, queryParams []string, db *sql.DB, context map[string]interface{}, data *[][][]string) error
-	//	BeforeExec(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}) (bool, error)
-	//	AfterExec(resourceId string, scripts string, params *[][]interface{}, queryParams []string, tx *sql.Tx, context map[string]interface{}, rowsAffectedArray [][]int64) error
+	BeforeExec(resourceId string, script string, params *[]interface{}, queryParams []string, array bool, db *sql.DB, context map[string]interface{}) (bool, error)
+	AfterExec(resourceId string, script string, params *[]interface{}, queryParams []string, array bool, db *sql.DB, context map[string]interface{}, data *[][]interface{}) error
 }
 
 type HandlerInterceptor interface {
@@ -118,16 +114,10 @@ func (this *DefaultDataInterceptor) AfterListArray(resourceId string, db *sql.DB
 	return nil
 }
 
-func (this *DefaultDataInterceptor) BeforeExecMap(resourceId string, script string, params *[][]interface{}, queryParams map[string]string, db *sql.DB, context map[string]interface{}) (bool, error) {
+func (this *DefaultDataInterceptor) BeforeExec(resourceId string, script string, params *[][]interface{}, queryParams map[string]string, array bool, db *sql.DB, context map[string]interface{}) (bool, error) {
 	return true, nil
 }
-func (this *DefaultDataInterceptor) AfterExecMap(resourceId string, script string, params *[][]interface{}, queryParams map[string]string, db *sql.DB, context map[string]interface{}, data *[][]map[string]string) error {
-	return nil
-}
-func (this *DefaultDataInterceptor) BeforeExecArray(resourceId string, script string, params *[][]interface{}, queryParams map[string]string, db *sql.DB, context map[string]interface{}) (bool, error) {
-	return true, nil
-}
-func (this *DefaultDataInterceptor) AfterExecArray(resourceId string, script string, params *[][]interface{}, queryParams map[string]string, db *sql.DB, context map[string]interface{}, data *[][][]string) error {
+func (this *DefaultDataInterceptor) AfterExec(resourceId string, script string, params *[][]interface{}, queryParams map[string]string, array bool, db *sql.DB, context map[string]interface{}, data *[][]interface{}) error {
 	return nil
 }
 
