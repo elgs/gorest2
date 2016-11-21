@@ -43,7 +43,7 @@ var convertMapOfInterfacesToMapOfStrings = func(data map[string]interface{}) (ma
 	return ret, nil
 }
 
-var parseExecParams = func(data string) (retQp map[string]string, retP [][]interface{}, retArray bool, err error) {
+var parseExecParams = func(data string) (retQp map[string]string, retP [][]interface{}, retArray bool, retCase string, err error) {
 	retQp = map[string]string{}
 	retP = [][]interface{}{}
 	retArray = true
@@ -104,6 +104,16 @@ var parseExecParams = func(data string) (retQp map[string]string, retP [][]inter
 	if errx == nil {
 		if v, found := array.(bool); found {
 			retArray = v
+		} else {
+			err = errors.New("Cannot recognize data type")
+			return
+		}
+	}
+
+	theCase, errx := parser.Query("case")
+	if errx == nil {
+		if v, found := theCase.(string); found {
+			retCase = v
 		} else {
 			err = errors.New("Cannot recognize data type")
 			return
@@ -356,11 +366,12 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		qp, p, array, err := parseExecParams(string(result))
+		qp, p, array, theCase, err := parseExecParams(string(result))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		context["case"] = theCase
 		data, err := dbo.Exec(tableId, p, qp, array, context)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
