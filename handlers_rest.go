@@ -128,9 +128,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("token")
 	appId := token[:32]
 	apiToken := token[:64]
-	jwtToken := token[64:]
+	//	jwtToken := token[64:]
 
-	fmt.Println(jwtToken)
+	//	fmt.Println(jwtToken)
 
 	context["token"] = apiToken
 
