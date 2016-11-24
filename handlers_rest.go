@@ -125,13 +125,12 @@ var parseExecParams = func(data string) (retQp map[string]string, retP [][]inter
 var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	context := make(map[string]interface{})
 
-	token := r.Header.Get("token")
-	appId := token[:32]
-	apiToken := token[:64]
-	jwtToken := token[64:]
+	apiToken := r.Header.Get("api-token")
+	userToken := r.Header.Get("user-token")
+	appId := apiToken[:32]
 
-	context["user_token"] = jwtToken
-	context["token"] = apiToken
+	context["user_token"] = userToken
+	context["api_token"] = apiToken
 
 	if appId == "" {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
