@@ -11,7 +11,7 @@ import (
 	"strings"
 	//	"time"
 
-	//	"github.com/dvsekhvalnov/jose2go"
+	"github.com/dvsekhvalnov/jose2go"
 	"github.com/elgs/gojq"
 	"github.com/elgs/gosplitargs"
 )
@@ -131,6 +131,17 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 
 	context["user_token"] = userToken
 	context["api_token"] = apiToken
+
+	sharedKey := []byte("netdata.io")
+
+	payload, headers, err := jose.Decode(userToken, sharedKey)
+	if appId == "" {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		fmt.Fprint(w, `{"err":"Invalid app."}`)
+		return
+	}
+	fmt.Println("payload:", payload)
+	fmt.Println("headers", headers)
 
 	if appId == "" {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
