@@ -140,8 +140,9 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, `{"err":"Invalid app."}`)
 		return
 	}
+	fmt.Println("err:", err)
 	fmt.Println("payload:", payload)
-	fmt.Println("headers", headers)
+	fmt.Println("headers:", headers)
 
 	if appId == "" {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
