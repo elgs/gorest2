@@ -134,15 +134,16 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 
 	sharedKey := []byte("netdata.io")
 
-	payload, headers, err := jose.Decode(userToken, sharedKey)
-	if appId == "" {
+	payload, _, err := jose.Decode(userToken, sharedKey)
+	if err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		fmt.Fprint(w, `{"err":"Invalid app."}`)
+		fmt.Fprint(w, fmt.Sprintf(`{"err":"%v"}`, err))
 		return
 	}
-	fmt.Println("err:", err)
-	fmt.Println("payload:", payload)
-	fmt.Println("headers:", headers)
+	userInfo := map[string]interface{}{}
+	json.Unmarshal([]byte(payload), &userInfo)
+
+	context["user_email"] = userInfo["email"]
 
 	if appId == "" {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
