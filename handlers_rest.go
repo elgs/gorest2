@@ -129,21 +129,23 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	userToken := r.Header.Get("user-token")
 	appId := apiToken[:32]
 
-	context["user_token"] = userToken
 	context["api_token"] = apiToken
 
-	sharedKey := []byte("netdata.io")
+	if len(userToken) > 0 {
+		context["user_token"] = userToken
+		sharedKey := []byte("netdata.io")
 
-	payload, _, err := jose.Decode(userToken, sharedKey)
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		fmt.Fprint(w, fmt.Sprintf(`{"err":"%v"}`, err))
-		return
+		payload, _, err := jose.Decode(userToken, sharedKey)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			fmt.Fprint(w, fmt.Sprintf(`{"err":"%v"}`, err))
+			return
+		}
+		userInfo := map[string]interface{}{}
+		json.Unmarshal([]byte(payload), &userInfo)
+
+		context["user_email"] = userInfo["email"]
 	}
-	userInfo := map[string]interface{}{}
-	json.Unmarshal([]byte(payload), &userInfo)
-
-	context["user_email"] = userInfo["email"]
 
 	if appId == "" {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
