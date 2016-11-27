@@ -31,16 +31,16 @@ func (this Gorest) Serve() {
 			return
 		}
 		for _, globalHandlerInterceptor := range GlobalHandlerInterceptorRegistry {
-			ctn, err := globalHandlerInterceptor.BeforeHandle(w, r)
-			if !ctn || err != nil {
+			err := globalHandlerInterceptor.BeforeHandle(w, r)
+			if err != nil {
 				fmt.Fprint(w, err.Error())
 				return
 			}
 		}
 		handlerInterceptor := HandlerInterceptorRegistry[urlPath]
 		if handlerInterceptor != nil {
-			ctn, err := handlerInterceptor.BeforeHandle(w, r)
-			if !ctn || err != nil {
+			err := handlerInterceptor.BeforeHandle(w, r)
+			if err != nil {
 				fmt.Fprint(w, err.Error())
 				return
 			}

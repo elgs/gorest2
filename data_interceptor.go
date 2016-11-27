@@ -45,84 +45,92 @@ func GetGlobalDataInterceptors() (map[int]DataInterceptor, []int) {
 }
 
 type DataInterceptor interface {
-	BeforeLoad(resourceId string, db *sql.DB, fields string, context map[string]interface{}, id string) (bool, error)
+	Before(resourceId string, db *sql.DB, context map[string]interface{}) error
+	After(resourceId string, db *sql.DB, context map[string]interface{}) error
+	BeforeLoad(resourceId string, db *sql.DB, fields string, context map[string]interface{}, id string) error
 	AfterLoad(resourceId string, db *sql.DB, fields string, context map[string]interface{}, data map[string]string) error
-	BeforeCreate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) (bool, error)
+	BeforeCreate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) error
 	AfterCreate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) error
-	BeforeUpdate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) (bool, error)
+	BeforeUpdate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) error
 	AfterUpdate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) error
-	BeforeDuplicate(resourceId string, db *sql.DB, context map[string]interface{}, id []string) (bool, error)
+	BeforeDuplicate(resourceId string, db *sql.DB, context map[string]interface{}, id []string) error
 	AfterDuplicate(resourceId string, db *sql.DB, context map[string]interface{}, oldId []string, newId []string) error
-	BeforeDelete(resourceId string, db *sql.DB, context map[string]interface{}, id []string) (bool, error)
+	BeforeDelete(resourceId string, db *sql.DB, context map[string]interface{}, id []string) error
 	AfterDelete(resourceId string, db *sql.DB, context map[string]interface{}, id []string) error
-	BeforeListMap(resourceId string, db *sql.DB, fields string, context map[string]interface{}, filter *string, sort *string, group *string, start int64, limit int64) (bool, error)
+	BeforeListMap(resourceId string, db *sql.DB, fields string, context map[string]interface{}, filter *string, sort *string, group *string, start int64, limit int64) error
 	AfterListMap(resourceId string, db *sql.DB, fields string, context map[string]interface{}, data *[]map[string]string, total int64) error
-	BeforeListArray(resourceId string, db *sql.DB, fields string, context map[string]interface{}, filter *string, sort *string, group *string, start int64, limit int64) (bool, error)
+	BeforeListArray(resourceId string, db *sql.DB, fields string, context map[string]interface{}, filter *string, sort *string, group *string, start int64, limit int64) error
 	AfterListArray(resourceId string, db *sql.DB, fields string, context map[string]interface{}, headers *[]string, data *[][]string, total int64) error
-	BeforeExec(resourceId string, script string, params *[][]interface{}, queryParams map[string]string, array bool, db *sql.DB, context map[string]interface{}) (bool, error)
+	BeforeExec(resourceId string, script string, params *[][]interface{}, queryParams map[string]string, array bool, db *sql.DB, context map[string]interface{}) error
 	AfterExec(resourceId string, script string, params *[][]interface{}, queryParams map[string]string, array bool, db *sql.DB, context map[string]interface{}, data *[][]interface{}) error
 }
 
 type HandlerInterceptor interface {
-	BeforeHandle(w http.ResponseWriter, r *http.Request) (bool, error)
+	BeforeHandle(w http.ResponseWriter, r *http.Request) error
 	AfterHandle(w http.ResponseWriter, r *http.Request) error
 }
 
 type DefaultDataInterceptor struct{}
 type DefaultHandlerInterceptor struct{}
 
-func (this *DefaultDataInterceptor) BeforeLoad(resourceId string, db *sql.DB, fields string, context map[string]interface{}, id string) (bool, error) {
-	return true, nil
+func (this *DefaultDataInterceptor) Before(resourceId string, db *sql.DB, context map[string]interface{}) error {
+	return nil
+}
+func (this *DefaultDataInterceptor) After(resourceId string, db *sql.DB, context map[string]interface{}) error {
+	return nil
+}
+func (this *DefaultDataInterceptor) BeforeLoad(resourceId string, db *sql.DB, fields string, context map[string]interface{}, id string) error {
+	return nil
 }
 func (this *DefaultDataInterceptor) AfterLoad(resourceId string, db *sql.DB, fields string, context map[string]interface{}, data map[string]string) error {
 	return nil
 }
-func (this *DefaultDataInterceptor) BeforeCreate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) (bool, error) {
-	return true, nil
+func (this *DefaultDataInterceptor) BeforeCreate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) error {
+	return nil
 }
 func (this *DefaultDataInterceptor) AfterCreate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) error {
 	return nil
 }
-func (this *DefaultDataInterceptor) BeforeUpdate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) (bool, error) {
-	return true, nil
+func (this *DefaultDataInterceptor) BeforeUpdate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) error {
+	return nil
 }
 func (this *DefaultDataInterceptor) AfterUpdate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) error {
 	return nil
 }
-func (this *DefaultDataInterceptor) BeforeDuplicate(resourceId string, db *sql.DB, context map[string]interface{}, id []string) (bool, error) {
-	return true, nil
+func (this *DefaultDataInterceptor) BeforeDuplicate(resourceId string, db *sql.DB, context map[string]interface{}, id []string) error {
+	return nil
 }
 func (this *DefaultDataInterceptor) AfterDuplicate(resourceId string, db *sql.DB, context map[string]interface{}, oldId []string, newId []string) error {
 	return nil
 }
-func (this *DefaultDataInterceptor) BeforeDelete(resourceId string, db *sql.DB, context map[string]interface{}, id []string) (bool, error) {
-	return true, nil
+func (this *DefaultDataInterceptor) BeforeDelete(resourceId string, db *sql.DB, context map[string]interface{}, id []string) error {
+	return nil
 }
 func (this *DefaultDataInterceptor) AfterDelete(resourceId string, db *sql.DB, context map[string]interface{}, id []string) error {
 	return nil
 }
-func (this *DefaultDataInterceptor) BeforeListMap(resourceId string, db *sql.DB, fields string, context map[string]interface{}, filter *string, sort *string, group *string, start int64, limit int64) (bool, error) {
-	return true, nil
+func (this *DefaultDataInterceptor) BeforeListMap(resourceId string, db *sql.DB, fields string, context map[string]interface{}, filter *string, sort *string, group *string, start int64, limit int64) error {
+	return nil
 }
 func (this *DefaultDataInterceptor) AfterListMap(resourceId string, db *sql.DB, fields string, context map[string]interface{}, data *[]map[string]string, total int64) error {
 	return nil
 }
-func (this *DefaultDataInterceptor) BeforeListArray(resourceId string, db *sql.DB, fields string, context map[string]interface{}, filter *string, sort *string, group *string, start int64, limit int64) (bool, error) {
-	return true, nil
+func (this *DefaultDataInterceptor) BeforeListArray(resourceId string, db *sql.DB, fields string, context map[string]interface{}, filter *string, sort *string, group *string, start int64, limit int64) error {
+	return nil
 }
 func (this *DefaultDataInterceptor) AfterListArray(resourceId string, db *sql.DB, fields string, context map[string]interface{}, headers *[]string, data *[][]string, total int64) error {
 	return nil
 }
 
-func (this *DefaultDataInterceptor) BeforeExec(resourceId string, script string, params *[][]interface{}, queryParams map[string]string, array bool, db *sql.DB, context map[string]interface{}) (bool, error) {
-	return true, nil
+func (this *DefaultDataInterceptor) BeforeExec(resourceId string, script string, params *[][]interface{}, queryParams map[string]string, array bool, db *sql.DB, context map[string]interface{}) error {
+	return nil
 }
 func (this *DefaultDataInterceptor) AfterExec(resourceId string, script string, params *[][]interface{}, queryParams map[string]string, array bool, db *sql.DB, context map[string]interface{}, data *[][]interface{}) error {
 	return nil
 }
 
-func (this *DefaultHandlerInterceptor) BeforeHandle(w http.ResponseWriter, r *http.Request) (bool, error) {
-	return true, nil
+func (this *DefaultHandlerInterceptor) BeforeHandle(w http.ResponseWriter, r *http.Request) error {
+	return nil
 }
 func (this *DefaultHandlerInterceptor) AfterHandle(w http.ResponseWriter, r *http.Request) error {
 	return nil

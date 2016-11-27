@@ -28,8 +28,8 @@ func (this *MySqlDataOperator) Load(tableId string, id string, fields string, co
 	globalDataInterceptors, globalSortedKeys := GetGlobalDataInterceptors()
 	for _, k := range globalSortedKeys {
 		globalDataInterceptor := globalDataInterceptors[k]
-		ctn, err := globalDataInterceptor.BeforeLoad(tableId, db, fields, context, id)
-		if !ctn {
+		err := globalDataInterceptor.BeforeLoad(tableId, db, fields, context, id)
+		if err != nil {
 			return ret, err
 		}
 	}
@@ -37,8 +37,8 @@ func (this *MySqlDataOperator) Load(tableId string, id string, fields string, co
 	for _, k := range sortedKeys {
 		dataInterceptor := dataInterceptors[k]
 		if dataInterceptor != nil {
-			ctn, err := dataInterceptor.BeforeLoad(tableId, db, fields, context, id)
-			if !ctn {
+			err := dataInterceptor.BeforeLoad(tableId, db, fields, context, id)
+			if err != nil {
 				return ret, err
 			}
 		}
@@ -102,8 +102,8 @@ func (this *MySqlDataOperator) ListMap(tableId string, fields string, filter []s
 	globalDataInterceptors, globalSortedKeys := GetGlobalDataInterceptors()
 	for _, k := range globalSortedKeys {
 		globalDataInterceptor := globalDataInterceptors[k]
-		ctn, err := globalDataInterceptor.BeforeListMap(tableId, db, fields, context, &where, &sort, &group, start, limit)
-		if !ctn {
+		err := globalDataInterceptor.BeforeListMap(tableId, db, fields, context, &where, &sort, &group, start, limit)
+		if err != nil {
 			return ret, -1, err
 		}
 	}
@@ -111,8 +111,8 @@ func (this *MySqlDataOperator) ListMap(tableId string, fields string, filter []s
 	for _, k := range sortedKeys {
 		dataInterceptor := dataInterceptors[k]
 		if dataInterceptor != nil {
-			ctn, err := dataInterceptor.BeforeListMap(tableId, db, fields, context, &where, &sort, &group, start, limit)
-			if !ctn {
+			err := dataInterceptor.BeforeListMap(tableId, db, fields, context, &where, &sort, &group, start, limit)
+			if err != nil {
 				return ret, -1, err
 			}
 		}
@@ -171,8 +171,8 @@ func (this *MySqlDataOperator) ListArray(tableId string, fields string, filter [
 	globalDataInterceptors, globalSortedKeys := GetGlobalDataInterceptors()
 	for _, k := range globalSortedKeys {
 		globalDataInterceptor := globalDataInterceptors[k]
-		ctn, err := globalDataInterceptor.BeforeListArray(tableId, db, fields, context, &where, &sort, &group, start, limit)
-		if !ctn {
+		err := globalDataInterceptor.BeforeListArray(tableId, db, fields, context, &where, &sort, &group, start, limit)
+		if err != nil {
 			return nil, nil, -1, err
 		}
 	}
@@ -180,8 +180,8 @@ func (this *MySqlDataOperator) ListArray(tableId string, fields string, filter [
 	for _, k := range sortedKeys {
 		dataInterceptor := dataInterceptors[k]
 		if dataInterceptor != nil {
-			ctn, err := dataInterceptor.BeforeListArray(tableId, db, fields, context, &where, &sort, &group, start, limit)
-			if !ctn {
+			err := dataInterceptor.BeforeListArray(tableId, db, fields, context, &where, &sort, &group, start, limit)
+			if err != nil {
 				return nil, nil, -1, err
 			}
 		}
@@ -229,8 +229,8 @@ func (this *MySqlDataOperator) Create(tableId string, data []map[string]interfac
 	globalDataInterceptors, globalSortedKeys := GetGlobalDataInterceptors()
 	for _, k := range globalSortedKeys {
 		globalDataInterceptor := globalDataInterceptors[k]
-		ctn, err := globalDataInterceptor.BeforeCreate(tableId, db, context, data)
-		if !ctn {
+		err := globalDataInterceptor.BeforeCreate(tableId, db, context, data)
+		if err != nil {
 			if tx, ok := context["tx"].(*sql.Tx); ok {
 				tx.Rollback()
 			}
@@ -241,8 +241,8 @@ func (this *MySqlDataOperator) Create(tableId string, data []map[string]interfac
 	for _, k := range sortedKeys {
 		dataInterceptor := dataInterceptors[k]
 		if dataInterceptor != nil {
-			ctn, err := dataInterceptor.BeforeCreate(tableId, db, context, data)
-			if !ctn {
+			err := dataInterceptor.BeforeCreate(tableId, db, context, data)
+			if err != nil {
 				if tx, ok := context["tx"].(*sql.Tx); ok {
 					tx.Rollback()
 				}
@@ -327,8 +327,8 @@ func (this *MySqlDataOperator) Update(tableId string, data []map[string]interfac
 	globalDataInterceptors, globalSortedKeys := GetGlobalDataInterceptors()
 	for _, k := range globalSortedKeys {
 		globalDataInterceptor := globalDataInterceptors[k]
-		ctn, err := globalDataInterceptor.BeforeUpdate(tableId, db, context, data)
-		if !ctn {
+		err := globalDataInterceptor.BeforeUpdate(tableId, db, context, data)
+		if err != nil {
 			if tx, ok := context["tx"].(*sql.Tx); ok {
 				tx.Rollback()
 			}
@@ -339,8 +339,8 @@ func (this *MySqlDataOperator) Update(tableId string, data []map[string]interfac
 	for _, k := range sortedKeys {
 		dataInterceptor := dataInterceptors[k]
 		if dataInterceptor != nil {
-			ctn, err := dataInterceptor.BeforeUpdate(tableId, db, context, data)
-			if !ctn {
+			err := dataInterceptor.BeforeUpdate(tableId, db, context, data)
+			if err != nil {
 				if tx, ok := context["tx"].(*sql.Tx); ok {
 					tx.Rollback()
 				}
@@ -455,8 +455,8 @@ func (this *MySqlDataOperator) Duplicate(tableId string, id []string, context ma
 	globalDataInterceptors, globalSortedKeys := GetGlobalDataInterceptors()
 	for _, k := range globalSortedKeys {
 		globalDataInterceptor := globalDataInterceptors[k]
-		ctn, err := globalDataInterceptor.BeforeDuplicate(tableId, db, context, id)
-		if !ctn {
+		err := globalDataInterceptor.BeforeDuplicate(tableId, db, context, id)
+		if err != nil {
 			if tx, ok := context["tx"].(*sql.Tx); ok {
 				tx.Rollback()
 			}
@@ -467,8 +467,8 @@ func (this *MySqlDataOperator) Duplicate(tableId string, id []string, context ma
 	for _, k := range sortedKeys {
 		dataInterceptor := dataInterceptors[k]
 		if dataInterceptor != nil {
-			ctn, err := dataInterceptor.BeforeDuplicate(tableId, db, context, id)
-			if !ctn {
+			err := dataInterceptor.BeforeDuplicate(tableId, db, context, id)
+			if err != nil {
 				if tx, ok := context["tx"].(*sql.Tx); ok {
 					tx.Rollback()
 				}
@@ -594,8 +594,8 @@ func (this *MySqlDataOperator) Delete(tableId string, id []string, context map[s
 	globalDataInterceptors, globalSortedKeys := GetGlobalDataInterceptors()
 	for _, k := range globalSortedKeys {
 		globalDataInterceptor := globalDataInterceptors[k]
-		ctn, err := globalDataInterceptor.BeforeDelete(tableId, db, context, id)
-		if !ctn {
+		err := globalDataInterceptor.BeforeDelete(tableId, db, context, id)
+		if err != nil {
 			if tx, ok := context["tx"].(*sql.Tx); ok {
 				tx.Rollback()
 			}
@@ -606,8 +606,8 @@ func (this *MySqlDataOperator) Delete(tableId string, id []string, context map[s
 	for _, k := range sortedKeys {
 		dataInterceptor := dataInterceptors[k]
 		if dataInterceptor != nil {
-			ctn, err := dataInterceptor.BeforeDelete(tableId, db, context, id)
-			if !ctn {
+			err := dataInterceptor.BeforeDelete(tableId, db, context, id)
+			if err != nil {
 				if tx, ok := context["tx"].(*sql.Tx); ok {
 					tx.Rollback()
 				}
