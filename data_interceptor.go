@@ -45,8 +45,6 @@ func GetGlobalDataInterceptors() (map[int]DataInterceptor, []int) {
 }
 
 type DataInterceptor interface {
-	Before(resourceId string, db *sql.DB, context map[string]interface{}) error
-	After(resourceId string, db *sql.DB, context map[string]interface{}) error
 	BeforeLoad(resourceId string, db *sql.DB, fields string, context map[string]interface{}, id string) error
 	AfterLoad(resourceId string, db *sql.DB, fields string, context map[string]interface{}, data map[string]string) error
 	BeforeCreate(resourceId string, db *sql.DB, context map[string]interface{}, data []map[string]interface{}) error
@@ -73,12 +71,6 @@ type HandlerInterceptor interface {
 type DefaultDataInterceptor struct{}
 type DefaultHandlerInterceptor struct{}
 
-func (this *DefaultDataInterceptor) Before(resourceId string, db *sql.DB, context map[string]interface{}) error {
-	return nil
-}
-func (this *DefaultDataInterceptor) After(resourceId string, db *sql.DB, context map[string]interface{}) error {
-	return nil
-}
 func (this *DefaultDataInterceptor) BeforeLoad(resourceId string, db *sql.DB, fields string, context map[string]interface{}, id string) error {
 	return nil
 }

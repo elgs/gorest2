@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dvsekhvalnov/jose2go"
 	"github.com/elgs/gojq"
 	"github.com/elgs/gosplitargs"
 )
@@ -125,25 +124,13 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 	context := make(map[string]interface{})
 
 	apiToken := r.Header.Get("api-token")
-	userToken := r.Header.Get("user-token")
 	appId := apiToken[:32]
 
 	context["api_token"] = apiToken
 
+	userToken := r.Header.Get("user-token")
 	if len(userToken) > 0 {
 		context["user_token"] = userToken
-		sharedKey := []byte("netdata.io")
-
-		payload, _, err := jose.Decode(userToken, sharedKey)
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json; charset=utf-8")
-			fmt.Fprint(w, fmt.Sprintf(`{"err":"%v"}`, err))
-			return
-		}
-		userInfo := map[string]interface{}{}
-		json.Unmarshal([]byte(payload), &userInfo)
-
-		context["user_email"] = userInfo["email"]
 	}
 
 	if appId == "" {
