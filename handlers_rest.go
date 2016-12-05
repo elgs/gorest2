@@ -233,47 +233,6 @@ var RestFunc = func(w http.ResponseWriter, r *http.Request) {
 					m["total"] = total
 				}
 			}
-			//				if ts, ok := m["data"].([]map[string]string); ok {
-			//					if len(ts) == 1 {
-			//						t := ts[0]
-			//						userId := ""
-			//						payload := make(map[string]interface{})
-			//						for k, v := range t {
-			//							uk := strings.ToUpper(k)
-			//							if uk == "CREATED_TIME" || uk == "CREATETIME" ||
-			//								uk == "CREATOR_ID" || uk == "CREATORID" ||
-			//								uk == "CREATOR_CODE" || uk == "CREATORCODE" ||
-			//								uk == "UPDATE_TIME" || uk == "UPDATETIME" ||
-			//								uk == "UPDATER_ID" || uk == "UPDATERID" ||
-			//								uk == "UPDATER_CODE" || uk == "UPDATERCODE" {
-			//								continue
-			//							}
-			//							if uk == "ID" {
-			//								userId = v
-			//							}
-			//							payload[k] = v
-			//						}
-			//						payload["app_id"] = appId
-			//						payload["exp"] = time.Now().Add(time.Hour * 72).Unix()
-
-			//						payloadBytes, err := json.Marshal(&payload)
-			//						tokenString, err := jose.Sign(string(payloadBytes), jose.HS256, []byte{})
-			//						if err != nil {
-			//							http.Error(w, err.Error(), http.StatusInternalServerError)
-			//							return
-			//						}
-			//						jsonString := fmt.Sprintf(`{"token":"%v"}`, tokenString)
-			//						userKey := strings.Join([]string{"user", appId, userId}, ":")
-			//						err = RedisMaster.HMSet(userKey, "authToken", tokenString).Err()
-			//						if err != nil {
-			//							http.Error(w, err.Error(), http.StatusInternalServerError)
-			//							return
-			//						}
-			//						w.Header().Set("Content-Type", "application/json; charset=utf-8")
-			//						fmt.Fprint(w, jsonString)
-			//						return
-			//					}
-			//				}
 			jsonData, err := json.Marshal(m)
 			jsonString := string(jsonData)
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
