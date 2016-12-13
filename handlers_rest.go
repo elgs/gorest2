@@ -97,6 +97,9 @@ var parseExecParams = func(data string) (retQp map[string]string, retP [][]inter
 			return
 		}
 	}
+	if len(retP) == 0 {
+		retP = [][]interface{}{[]interface{}{}}
+	}
 
 	array, errx := parser.Query("array")
 	if errx == nil {
